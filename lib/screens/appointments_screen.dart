@@ -42,13 +42,12 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     return DateFormat('hh:mm a').format(date);
   }
 
-  String _getSessionDuration(int minutes) {
-    if (minutes < 60) {
-      return '$minutes min';
+  String _getSessionDuration(int hours) {
+    // sessionTime comes in HOURS from backend, not minutes
+    if (hours == 1) {
+      return '1 hour';
     } else {
-      final hours = minutes ~/ 60;
-      final mins = minutes % 60;
-      return mins > 0 ? '$hours h $mins min' : '$hours h';
+      return '$hours hours';
     }
   }
 
@@ -250,7 +249,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                       border: Border.all(color: Colors.green),
                     ),
                     child: const Text(
-                      'HOY',
+                      'TODAY',
                       style: TextStyle(
                         color: Colors.green,
                         fontSize: 12,
@@ -274,27 +273,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                 ),
                 Text(
                   _getSessionDuration(session.sessionTime),
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(Icons.person, size: 18, color: Colors.grey[600]),
-                const SizedBox(width: 8),
-                Text(
-                  'Professional ID: ',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                Text(
-                  '#${session.professionalId}',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,

@@ -4,7 +4,7 @@ class Session {
   final int patientId;
   final int professionalId;
   final DateTime appointmentDate;
-  final int sessionTime;
+  final int sessionTime; // Duration in HOURS
 
   Session({
     required this.id,
