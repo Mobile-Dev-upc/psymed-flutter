@@ -119,18 +119,6 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
           ),
           const SizedBox(width: 8),
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: AppColors.primary,
-          unselectedLabelColor: AppColors.textLight,
-          indicatorColor: AppColors.primary,
-          tabs: const [
-            Tab(text: 'Info', icon: Icon(Icons.info_outline, size: 20)),
-            Tab(text: 'Medications', icon: Icon(Icons.medication, size: 20)),
-            Tab(text: 'Sessions', icon: Icon(Icons.calendar_today, size: 20)),
-            Tab(text: 'Tasks', icon: Icon(Icons.task_alt, size: 20)),
-          ],
-        ),
       ),
       body: _isLoading
           ? const Center(
@@ -147,6 +135,36 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
                     _buildTasksTab(),
                   ],
                 ),
+      bottomNavigationBar: Container(
+        color: AppColors.cardBackground,
+        child: SafeArea(
+          child: TabBar(
+            controller: _tabController,
+            labelColor: AppColors.primary,
+            unselectedLabelColor: AppColors.textLight,
+            indicatorColor: AppColors.primary,
+            indicatorWeight: 3,
+            tabs: const [
+              Tab(
+                text: 'Info',
+                icon: Icon(Icons.info_outline, size: 22),
+              ),
+              Tab(
+                text: 'Medications',
+                icon: Icon(Icons.medication, size: 22),
+              ),
+              Tab(
+                text: 'Sessions',
+                icon: Icon(Icons.calendar_today, size: 22),
+              ),
+              Tab(
+                text: 'Tasks',
+                icon: Icon(Icons.task_alt, size: 22),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
