@@ -27,9 +27,13 @@ class BiologicalFunctions {
       sleep: json['sleep'] ?? 0,
       energy: json['energy'] ?? 0,
       idPatient: json['idPatient'] ?? 0,
-      date: json['date'] != null || json['createdAt'] != null || json['recordDate'] != null
-          ? DateTime.parse((json['date'] ?? json['createdAt'] ?? json['recordDate']).toString())
-          : null,
+      date: json['createdAt'] != null 
+          ? DateTime.parse(json['createdAt'].toString())
+          : (json['date'] != null 
+              ? DateTime.parse(json['date'].toString())
+              : (json['recordDate'] != null 
+                  ? DateTime.parse(json['recordDate'].toString())
+                  : null)),
     );
   }
 

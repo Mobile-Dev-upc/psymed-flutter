@@ -21,7 +21,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with SingleTickerProv
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _loadAnalytics();
+    // Use addPostFrameCallback to avoid calling setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadAnalytics();
+    });
   }
 
   @override
@@ -34,24 +37,23 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with SingleTickerProv
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final analyticsProvider = Provider.of<AnalyticsProvider>(context, listen: false);
     
-    if (authProvider.patientProfile?.id != null && authProvider.token != null) {
+    if (authProvider.patientProfile?.id == null || authProvider.token == null) {
+      print('Cannot load analytics: Missing patient profile or token');
+      return;
+    }
+
+    // Set loading state
+    analyticsProvider.setLoading(true);
+    
+    try {
       final now = DateTime.now();
       final year = now.year.toString();
       final month = now.month.toString();
       
+      print('Loading analytics for patient ${authProvider.patientProfile!.id}, year: $year, month: $month');
+      
+      // Step 1: Load raw data first
       await Future.wait([
-        analyticsProvider.loadMoodAnalytics(
-          authProvider.patientProfile!.id,
-          year,
-          month,
-          authProvider.token!,
-        ),
-        analyticsProvider.loadBiologicalAnalytics(
-          authProvider.patientProfile!.id,
-          year,
-          month,
-          authProvider.token!,
-        ),
         analyticsProvider.loadMoodStates(
           authProvider.patientProfile!.id,
           authProvider.token!,
@@ -61,6 +63,29 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with SingleTickerProv
           authProvider.token!,
         ),
       ]);
+      
+      print('Raw data loaded successfully');
+      
+      // Step 2: Calculate analytics from the loaded data
+      await Future.wait([
+        analyticsProvider.loadMoodAnalytics(
+          authProvider.patientProfile!.id,
+          year,
+          month,
+        ),
+        analyticsProvider.loadBiologicalAnalytics(
+          authProvider.patientProfile!.id,
+          year,
+          month,
+        ),
+      ]);
+      
+      print('Analytics calculated successfully');
+    } catch (e) {
+      print('Error in _loadAnalytics: $e');
+    } finally {
+      // Clear loading state and notify listeners once
+      analyticsProvider.setLoading(false);
     }
   }
 

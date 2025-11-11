@@ -26,26 +26,19 @@ class AnalyticsProvider with ChangeNotifier {
     int patientId,
     String year,
     String month,
-    String token,
   ) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
     try {
-      _moodAnalytic = await _analyticsService.getMoodAnalytics(
+      // Calculate analytics from already loaded mood states
+      _moodAnalytic = _analyticsService.calculateMoodAnalytics(
+        _moodStates,
         patientId,
         year,
         month,
-        token,
       );
-      _error = null;
     } catch (e) {
+      print('Error calculating mood analytics: $e');
       _error = e.toString();
       _moodAnalytic = null;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
     }
   }
 
@@ -53,63 +46,42 @@ class AnalyticsProvider with ChangeNotifier {
     int patientId,
     String year,
     String month,
-    String token,
   ) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
     try {
-      _biologicalAnalytic = await _analyticsService.getBiologicalAnalytics(
+      // Calculate analytics from already loaded biological functions
+      _biologicalAnalytic = _analyticsService.calculateBiologicalAnalytics(
+        _biologicalFunctions,
         patientId,
         year,
         month,
-        token,
       );
-      _error = null;
     } catch (e) {
+      print('Error calculating biological analytics: $e');
       _error = e.toString();
       _biologicalAnalytic = null;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
     }
   }
 
   Future<void> loadMoodStates(int patientId, String token) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
     try {
       _moodStates = await _analyticsService.getMoodStates(patientId, token);
-      _error = null;
     } catch (e) {
+      print('Error loading mood states: $e');
       _error = e.toString();
       _moodStates = [];
-    } finally {
-      _isLoading = false;
-      notifyListeners();
     }
   }
 
   Future<void> loadBiologicalFunctions(int patientId, String token) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
     try {
       _biologicalFunctions = await _analyticsService.getBiologicalFunctions(
         patientId,
         token,
       );
-      _error = null;
     } catch (e) {
+      print('Error loading biological functions: $e');
       _error = e.toString();
       _biologicalFunctions = [];
-    } finally {
-      _isLoading = false;
-      notifyListeners();
     }
   }
 
@@ -155,6 +127,11 @@ class AnalyticsProvider with ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  void setLoading(bool loading) {
+    _isLoading = loading;
+    notifyListeners();
   }
 
   void clearError() {

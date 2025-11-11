@@ -14,13 +14,17 @@ class MoodState {
   });
 
   factory MoodState.fromJson(Map<String, dynamic> json) {
+    // Backend returns status (0-4), convert to Flutter mood (1-5)
+    int backendStatus = json['status'] ?? 2; // default to NORMAL (2)
+    int flutterMood = backendStatus + 1; // Convert 0-4 to 1-5
+    
     return MoodState(
       id: json['id'] ?? 0,
       idPatient: json['idPatient'],
-      mood: json['mood'] ?? 3,
-      date: json['date'] != null 
-          ? DateTime.parse(json['date'].toString()) 
-          : null,
+      mood: flutterMood,
+      date: json['createdAt'] != null 
+          ? DateTime.parse(json['createdAt'].toString()) 
+          : (json['date'] != null ? DateTime.parse(json['date'].toString()) : null),
     );
   }
 
