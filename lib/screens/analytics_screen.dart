@@ -1,0 +1,1072 @@
+// lib/screens/analytics_screen.dart
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:fl_chart/fl_chart.dart';
+import '../providers/analytics_provider.dart';
+import '../providers/auth_provider.dart';
+import '../models/mood_state_model.dart';
+import '../models/biological_functions_model.dart';
+
+class AnalyticsScreen extends StatefulWidget {
+  const AnalyticsScreen({super.key});
+
+  @override
+  State<AnalyticsScreen> createState() => _AnalyticsScreenState();
+}
+
+class _AnalyticsScreenState extends State<AnalyticsScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _loadAnalytics();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadAnalytics() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final analyticsProvider = Provider.of<AnalyticsProvider>(context, listen: false);
+    
+    if (authProvider.patientProfile?.id != null && authProvider.token != null) {
+      final now = DateTime.now();
+      final year = now.year.toString();
+      final month = now.month.toString();
+      
+      await Future.wait([
+        analyticsProvider.loadMoodAnalytics(
+          authProvider.patientProfile!.id,
+          year,
+          month,
+          authProvider.token!,
+        ),
+        analyticsProvider.loadBiologicalAnalytics(
+          authProvider.patientProfile!.id,
+          year,
+          month,
+          authProvider.token!,
+        ),
+        analyticsProvider.loadMoodStates(
+          authProvider.patientProfile!.id,
+          authProvider.token!,
+        ),
+        analyticsProvider.loadBiologicalFunctions(
+          authProvider.patientProfile!.id,
+          authProvider.token!,
+        ),
+      ]);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        title: const Text(
+          'Analytics Dashboard',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: Colors.black,
+          unselectedLabelColor: Colors.grey,
+          indicatorColor: Colors.black,
+          indicatorWeight: 3,
+          tabs: const [
+            Tab(text: 'Emotional State'),
+            Tab(text: 'Physical Health'),
+          ],
+        ),
+      ),
+      body: Consumer<AnalyticsProvider>(
+        builder: (context, analyticsProvider, child) {
+          if (analyticsProvider.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          return RefreshIndicator(
+            onRefresh: _loadAnalytics,
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildEmotionalTab(analyticsProvider),
+                _buildPhysicalTab(analyticsProvider),
+              ],
+            ),
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showAddEntryDialog(),
+        backgroundColor: Colors.black,
+        label: const Text('Add Entry'),
+        icon: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  Widget _buildEmotionalTab(AnalyticsProvider analyticsProvider) {
+    final moodAnalytic = analyticsProvider.moodAnalytic;
+    
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Mood Distribution Pie Chart
+          if (moodAnalytic != null && moodAnalytic.totalMoods > 0) ...[
+            _buildSectionTitle('Mood Distribution'),
+            const SizedBox(height: 16),
+            _buildMoodPieChart(moodAnalytic),
+            const SizedBox(height: 24),
+            _buildMoodLegend(moodAnalytic),
+            const SizedBox(height: 32),
+          ],
+          
+          // Recent Mood Entries
+          _buildSectionTitle('Recent Mood Entries'),
+          const SizedBox(height: 16),
+          if (analyticsProvider.moodStates.isEmpty)
+            _buildEmptyState('No mood entries yet', Icons.mood)
+          else
+            ...analyticsProvider.moodStates
+                .take(10)
+                .map((mood) => _buildMoodCard(mood)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPhysicalTab(AnalyticsProvider analyticsProvider) {
+    final biologicalAnalytic = analyticsProvider.biologicalAnalytic;
+    final biologicalFunctions = analyticsProvider.biologicalFunctions;
+    
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Average Metrics
+          if (biologicalAnalytic != null) ...[
+            _buildSectionTitle('Monthly Averages'),
+            const SizedBox(height: 16),
+            _buildBiologicalAveragesCard(biologicalAnalytic),
+            const SizedBox(height: 24),
+            _buildBiologicalBarChart(biologicalAnalytic),
+            const SizedBox(height: 32),
+          ],
+          
+          // Weekly Trend
+          if (biologicalFunctions.isNotEmpty) ...[
+            _buildSectionTitle('Weekly Trend'),
+            const SizedBox(height: 16),
+            _buildBiologicalLineChart(biologicalFunctions),
+            const SizedBox(height: 32),
+          ],
+          
+          // Recent Entries
+          _buildSectionTitle('Recent Entries'),
+          const SizedBox(height: 16),
+          if (biologicalFunctions.isEmpty)
+            _buildEmptyState('No biological entries yet', Icons.favorite)
+          else
+            ...biologicalFunctions
+                .take(10)
+                .map((bio) => _buildBiologicalCard(bio)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }
+
+  Widget _buildMoodPieChart(MoodAnalytic moodAnalytic) {
+    return Container(
+      height: 250,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: PieChart(
+        PieChartData(
+          sectionsSpace: 2,
+          centerSpaceRadius: 60,
+          sections: [
+            if (moodAnalytic.soSadMood > 0)
+              PieChartSectionData(
+                value: moodAnalytic.soSadMood.toDouble(),
+                title: '${((moodAnalytic.soSadMood / moodAnalytic.totalMoods) * 100).toStringAsFixed(0)}%',
+                color: const Color(0xFFEF4444),
+                radius: 50,
+                titleStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            if (moodAnalytic.sadMood > 0)
+              PieChartSectionData(
+                value: moodAnalytic.sadMood.toDouble(),
+                title: '${((moodAnalytic.sadMood / moodAnalytic.totalMoods) * 100).toStringAsFixed(0)}%',
+                color: const Color(0xFFF97316),
+                radius: 50,
+                titleStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            if (moodAnalytic.neutralMood > 0)
+              PieChartSectionData(
+                value: moodAnalytic.neutralMood.toDouble(),
+                title: '${((moodAnalytic.neutralMood / moodAnalytic.totalMoods) * 100).toStringAsFixed(0)}%',
+                color: const Color(0xFF6B7280),
+                radius: 50,
+                titleStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            if (moodAnalytic.happyMood > 0)
+              PieChartSectionData(
+                value: moodAnalytic.happyMood.toDouble(),
+                title: '${((moodAnalytic.happyMood / moodAnalytic.totalMoods) * 100).toStringAsFixed(0)}%',
+                color: const Color(0xFF10B981),
+                radius: 50,
+                titleStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            if (moodAnalytic.soHappyMood > 0)
+              PieChartSectionData(
+                value: moodAnalytic.soHappyMood.toDouble(),
+                title: '${((moodAnalytic.soHappyMood / moodAnalytic.totalMoods) * 100).toStringAsFixed(0)}%',
+                color: const Color(0xFF3B82F6),
+                radius: 50,
+                titleStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMoodLegend(MoodAnalytic moodAnalytic) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          if (moodAnalytic.soSadMood > 0)
+            _buildLegendItem('So Sad 😢', moodAnalytic.soSadMood, const Color(0xFFEF4444)),
+          if (moodAnalytic.sadMood > 0)
+            _buildLegendItem('Sad 😕', moodAnalytic.sadMood, const Color(0xFFF97316)),
+          if (moodAnalytic.neutralMood > 0)
+            _buildLegendItem('Neutral 😐', moodAnalytic.neutralMood, const Color(0xFF6B7280)),
+          if (moodAnalytic.happyMood > 0)
+            _buildLegendItem('Happy 😊', moodAnalytic.happyMood, const Color(0xFF10B981)),
+          if (moodAnalytic.soHappyMood > 0)
+            _buildLegendItem('So Happy 😄', moodAnalytic.soHappyMood, const Color(0xFF3B82F6)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLegendItem(String label, int count, Color color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 16),
+            ),
+          ),
+          Text(
+            count.toString(),
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBiologicalAveragesCard(BiologicalAnalytic analytic) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _buildMetricItem(
+                  '🍽️',
+                  'Hunger',
+                  analytic.hungerAverage.toStringAsFixed(1),
+                  Colors.orange,
+                ),
+              ),
+              Expanded(
+                child: _buildMetricItem(
+                  '💧',
+                  'Hydration',
+                  analytic.hydrationAverage.toStringAsFixed(1),
+                  Colors.blue,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _buildMetricItem(
+                  '😴',
+                  'Sleep',
+                  analytic.sleepAverage.toStringAsFixed(1),
+                  Colors.purple,
+                ),
+              ),
+              Expanded(
+                child: _buildMetricItem(
+                  '⚡',
+                  'Energy',
+                  analytic.energyAverage.toStringAsFixed(1),
+                  Colors.green,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetricItem(String emoji, String label, String value, Color color) {
+    return Column(
+      children: [
+        Text(emoji, style: const TextStyle(fontSize: 32)),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            color: Colors.grey,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBiologicalBarChart(BiologicalAnalytic analytic) {
+    return Container(
+      height: 250,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: BarChart(
+        BarChartData(
+          alignment: BarChartAlignment.spaceAround,
+          maxY: 10,
+          barTouchData: BarTouchData(enabled: false),
+          titlesData: FlTitlesData(
+            show: true,
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  const titles = ['Hunger', 'Hydration', 'Sleep', 'Energy'];
+                  if (value.toInt() < titles.length) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        titles[value.toInt()],
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    );
+                  }
+                  return const Text('');
+                },
+              ),
+            ),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 30,
+                getTitlesWidget: (value, meta) {
+                  return Text(
+                    value.toInt().toString(),
+                    style: const TextStyle(fontSize: 12),
+                  );
+                },
+              ),
+            ),
+            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          ),
+          gridData: const FlGridData(
+            show: true,
+            drawVerticalLine: false,
+            horizontalInterval: 2,
+          ),
+          borderData: FlBorderData(show: false),
+          barGroups: [
+            BarChartGroupData(
+              x: 0,
+              barRods: [
+                BarChartRodData(
+                  toY: analytic.hungerAverage,
+                  color: Colors.orange,
+                  width: 20,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                ),
+              ],
+            ),
+            BarChartGroupData(
+              x: 1,
+              barRods: [
+                BarChartRodData(
+                  toY: analytic.hydrationAverage,
+                  color: Colors.blue,
+                  width: 20,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                ),
+              ],
+            ),
+            BarChartGroupData(
+              x: 2,
+              barRods: [
+                BarChartRodData(
+                  toY: analytic.sleepAverage,
+                  color: Colors.purple,
+                  width: 20,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                ),
+              ],
+            ),
+            BarChartGroupData(
+              x: 3,
+              barRods: [
+                BarChartRodData(
+                  toY: analytic.energyAverage,
+                  color: Colors.green,
+                  width: 20,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBiologicalLineChart(List<BiologicalFunctions> biologicalFunctions) {
+    // Get last 7 days
+    final last7Days = biologicalFunctions.take(7).toList().reversed.toList();
+    
+    return Container(
+      height: 250,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: LineChart(
+        LineChartData(
+          gridData: const FlGridData(
+            show: true,
+            drawVerticalLine: false,
+          ),
+          titlesData: FlTitlesData(
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 30,
+                getTitlesWidget: (value, meta) {
+                  if (value.toInt() >= 0 && value.toInt() < last7Days.length) {
+                    return Text(
+                      'D${value.toInt() + 1}',
+                      style: const TextStyle(fontSize: 12),
+                    );
+                  }
+                  return const Text('');
+                },
+              ),
+            ),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 30,
+                getTitlesWidget: (value, meta) {
+                  return Text(
+                    value.toInt().toString(),
+                    style: const TextStyle(fontSize: 12),
+                  );
+                },
+              ),
+            ),
+            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          ),
+          borderData: FlBorderData(show: false),
+          minX: 0,
+          maxX: (last7Days.length - 1).toDouble(),
+          minY: 0,
+          maxY: 10,
+          lineBarsData: [
+            // Hunger
+            LineChartBarData(
+              spots: last7Days.asMap().entries.map((entry) {
+                return FlSpot(entry.key.toDouble(), entry.value.hunger.toDouble());
+              }).toList(),
+              isCurved: true,
+              color: Colors.orange,
+              barWidth: 3,
+              dotData: const FlDotData(show: true),
+            ),
+            // Hydration
+            LineChartBarData(
+              spots: last7Days.asMap().entries.map((entry) {
+                return FlSpot(entry.key.toDouble(), entry.value.hydration.toDouble());
+              }).toList(),
+              isCurved: true,
+              color: Colors.blue,
+              barWidth: 3,
+              dotData: const FlDotData(show: true),
+            ),
+            // Sleep
+            LineChartBarData(
+              spots: last7Days.asMap().entries.map((entry) {
+                return FlSpot(entry.key.toDouble(), entry.value.sleep.toDouble());
+              }).toList(),
+              isCurved: true,
+              color: Colors.purple,
+              barWidth: 3,
+              dotData: const FlDotData(show: true),
+            ),
+            // Energy
+            LineChartBarData(
+              spots: last7Days.asMap().entries.map((entry) {
+                return FlSpot(entry.key.toDouble(), entry.value.energy.toDouble());
+              }).toList(),
+              isCurved: true,
+              color: Colors.green,
+              barWidth: 3,
+              dotData: const FlDotData(show: true),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMoodCard(MoodState mood) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Text(
+            mood.getMoodEmoji(),
+            style: const TextStyle(fontSize: 32),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  mood.getMoodLabel(),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (mood.date != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    '${mood.date!.day}/${mood.date!.month}/${mood.date!.year}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBiologicalCard(BiologicalFunctions bio) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (bio.date != null)
+            Text(
+              '${bio.date!.day}/${bio.date!.month}/${bio.date!.year}',
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildBioMetric('🍽️', 'Hunger', bio.hunger),
+              _buildBioMetric('💧', 'Hydration', bio.hydration),
+              _buildBioMetric('😴', 'Sleep', bio.sleep),
+              _buildBioMetric('⚡', 'Energy', bio.energy),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBioMetric(String emoji, String label, int value) {
+    return Column(
+      children: [
+        Text(emoji, style: const TextStyle(fontSize: 24)),
+        const SizedBox(height: 4),
+        Text(
+          value.toString(),
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Colors.grey,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyState(String message, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      child: Center(
+        child: Column(
+          children: [
+            Icon(icon, size: 64, color: Colors.grey[300]),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.grey,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAddEntryDialog() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: DefaultTabController(
+          length: 2,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const TabBar(
+                labelColor: Colors.black,
+                unselectedLabelColor: Colors.grey,
+                indicatorColor: Colors.black,
+                tabs: [
+                  Tab(text: 'Mood'),
+                  Tab(text: 'Physical'),
+                ],
+              ),
+              SizedBox(
+                height: 400,
+                child: TabBarView(
+                  children: [
+                    _buildMoodEntryForm(),
+                    _buildBiologicalEntryForm(),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMoodEntryForm() {
+    int selectedMood = 3;
+    
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'How are you feeling today?',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildMoodOption(1, '😢', 'So Sad', selectedMood == 1, () {
+                    setState(() => selectedMood = 1);
+                  }),
+                  _buildMoodOption(2, '😕', 'Sad', selectedMood == 2, () {
+                    setState(() => selectedMood = 2);
+                  }),
+                  _buildMoodOption(3, '😐', 'Neutral', selectedMood == 3, () {
+                    setState(() => selectedMood = 3);
+                  }),
+                  _buildMoodOption(4, '😊', 'Happy', selectedMood == 4, () {
+                    setState(() => selectedMood = 4);
+                  }),
+                  _buildMoodOption(5, '😄', 'So Happy', selectedMood == 5, () {
+                    setState(() => selectedMood = 5);
+                  }),
+                ],
+              ),
+              const Spacer(),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                    final analyticsProvider = Provider.of<AnalyticsProvider>(context, listen: false);
+                    
+                    if (authProvider.patientProfile?.id != null && authProvider.token != null) {
+                      final success = await analyticsProvider.createMoodState(
+                        authProvider.patientProfile!.id,
+                        selectedMood,
+                        authProvider.token!,
+                      );
+                      
+                      if (success && mounted) {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Mood entry added successfully')),
+                        );
+                        _loadAnalytics();
+                      }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Save',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMoodOption(int value, String emoji, String label, bool selected, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: selected ? Colors.black : Colors.grey[200],
+              shape: BoxShape.circle,
+            ),
+            child: Text(
+              emoji,
+              style: const TextStyle(fontSize: 32),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              color: selected ? Colors.black : Colors.grey,
+              fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBiologicalEntryForm() {
+    double hunger = 5;
+    double hydration = 5;
+    double sleep = 5;
+    double energy = 5;
+    
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Track your physical health',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 24),
+              _buildSlider('🍽️ Hunger', hunger, (value) {
+                setState(() => hunger = value);
+              }),
+              _buildSlider('💧 Hydration', hydration, (value) {
+                setState(() => hydration = value);
+              }),
+              _buildSlider('😴 Sleep Quality', sleep, (value) {
+                setState(() => sleep = value);
+              }),
+              _buildSlider('⚡ Energy Level', energy, (value) {
+                setState(() => energy = value);
+              }),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                    final analyticsProvider = Provider.of<AnalyticsProvider>(context, listen: false);
+                    
+                    if (authProvider.patientProfile?.id != null && authProvider.token != null) {
+                      final success = await analyticsProvider.createBiologicalFunction(
+                        authProvider.patientProfile!.id,
+                        hunger.toInt(),
+                        hydration.toInt(),
+                        sleep.toInt(),
+                        energy.toInt(),
+                        authProvider.token!,
+                      );
+                      
+                      if (success && mounted) {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Physical health entry added successfully')),
+                        );
+                        _loadAnalytics();
+                      }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Save',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSlider(String label, double value, Function(double) onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            Text(
+              value.toInt().toString(),
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        Slider(
+          value: value,
+          min: 0,
+          max: 10,
+          divisions: 10,
+          activeColor: Colors.black,
+          onChanged: onChanged,
+        ),
+        const SizedBox(height: 8),
+      ],
+    );
+  }
+}
+
