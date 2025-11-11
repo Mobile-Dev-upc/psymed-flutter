@@ -553,24 +553,36 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
   }
 
   Widget _buildSessionsTab() {
-    if (_sessions.isEmpty) {
-      return _buildEmptyState(
-        icon: Icons.calendar_today,
-        message: 'No sessions scheduled',
-      );
-    }
-
-    // Ordenar sesiones por fecha (más recientes primero)
     final sortedSessions = List<Session>.from(_sessions)
       ..sort((a, b) => b.appointmentDate.compareTo(a.appointmentDate));
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16.0),
-      itemCount: sortedSessions.length,
-      itemBuilder: (context, index) {
-        final session = sortedSessions[index];
-        return _buildSessionCard(session);
-      },
+    return Stack(
+      children: [
+        if (_sessions.isEmpty)
+          _buildEmptyState(
+            icon: Icons.calendar_today,
+            message: 'No sessions scheduled',
+          )
+        else
+          ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
+            itemCount: sortedSessions.length,
+            itemBuilder: (context, index) {
+              final session = sortedSessions[index];
+              return _buildSessionCard(session);
+            },
+          ),
+        Positioned(
+          bottom: 16,
+          right: 16,
+          child: FloatingActionButton(
+            heroTag: 'sessionFab',
+            onPressed: _showAddSessionDialog,
+            backgroundColor: AppColors.primary,
+            child: const Icon(Icons.add, color: Colors.white),
+          ),
+        ),
+      ],
     );
   }
 
@@ -585,94 +597,115 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isPast
-                    ? AppColors.textLight.withOpacity(0.2)
-                    : AppColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                Icons.calendar_today,
-                color: isPast ? AppColors.textLight : AppColors.primary,
-                size: 28,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    dateFormatter.format(session.appointmentDate),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: isPast ? AppColors.textLight : AppColors.primary,
-                    ),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isPast
+                        ? AppColors.textLight.withOpacity(0.2)
+                        : AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  const SizedBox(height: 4),
-                  Row(
+                  child: Icon(
+                    Icons.calendar_today,
+                    color: isPast ? AppColors.textLight : AppColors.primary,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        Icons.access_time,
-                        size: 14,
-                        color: isPast
-                            ? AppColors.textLight
-                            : AppColors.textSecondary,
-                      ),
-                      const SizedBox(width: 4),
                       Text(
-                        timeFormatter.format(session.appointmentDate),
+                        dateFormatter.format(session.appointmentDate),
                         style: TextStyle(
-                          fontSize: 14,
-                          color: isPast
-                              ? AppColors.textLight
-                              : AppColors.textSecondary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isPast ? AppColors.textLight : AppColors.primary,
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Icon(
-                        Icons.timer,
-                        size: 14,
-                        color: isPast
-                            ? AppColors.textLight
-                            : AppColors.textSecondary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${session.sessionTime}h',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: isPast
-                              ? AppColors.textLight
-                              : AppColors.textSecondary,
-                        ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.access_time,
+                            size: 14,
+                            color: isPast
+                                ? AppColors.textLight
+                                : AppColors.textSecondary,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            timeFormatter.format(session.appointmentDate),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: isPast
+                                  ? AppColors.textLight
+                                  : AppColors.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Icon(
+                            Icons.timer,
+                            size: 14,
+                            color: isPast
+                                ? AppColors.textLight
+                                : AppColors.textSecondary,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${session.sessionTime}h',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: isPast
+                                  ? AppColors.textLight
+                                  : AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-            if (!isPast)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Text(
-                  'Upcoming',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                if (!isPast)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Text(
+                      'Upcoming',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit, size: 20, color: AppColors.primary),
+                  tooltip: 'Edit',
+                  onPressed: isPast ? null : () => _showEditSessionDialog(session),
                 ),
-              ),
+                IconButton(
+                  icon: const Icon(Icons.delete, size: 20, color: Colors.red),
+                  tooltip: 'Delete',
+                  onPressed: () => _confirmDeleteSession(session),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -1180,6 +1213,512 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
         ),
       ],
     );
+  }
+
+  void _showAddSessionDialog() {
+    _showSessionDialog();
+  }
+
+  void _showEditSessionDialog(Session session) {
+    _showSessionDialog(existingSession: session);
+  }
+
+  void _showSessionDialog({Session? existingSession}) {
+    final bool isEditing = existingSession != null;
+    final formKey = GlobalKey<FormState>();
+
+    DateTime selectedDateTime =
+        existingSession?.appointmentDate ?? DateTime.now().add(const Duration(hours: 1));
+
+    final dateFormatter = DateFormat('yyyy-MM-dd');
+    final timeFormatter = DateFormat('HH:mm');
+
+    final dateController = TextEditingController(text: dateFormatter.format(selectedDateTime));
+    final timeController = TextEditingController(text: timeFormatter.format(selectedDateTime));
+
+    final initialDuration = existingSession?.sessionTime ?? 1.0;
+    final durationController = TextEditingController(
+      text: initialDuration % 1 == 0
+          ? initialDuration.toInt().toString()
+          : initialDuration.toString(),
+    );
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            Future<void> pickDate() async {
+              final pickedDate = await showDatePicker(
+                context: dialogContext,
+                initialDate: selectedDateTime.isAfter(DateTime.now())
+                    ? selectedDateTime
+                    : DateTime.now().add(const Duration(days: 1)),
+                firstDate: DateTime.now(),
+                lastDate: DateTime.now().add(const Duration(days: 365)),
+              );
+
+              if (pickedDate != null) {
+                setStateDialog(() {
+                  selectedDateTime = DateTime(
+                    pickedDate.year,
+                    pickedDate.month,
+                    pickedDate.day,
+                    selectedDateTime.hour,
+                    selectedDateTime.minute,
+                  );
+                  dateController.text = dateFormatter.format(selectedDateTime);
+                });
+              }
+            }
+
+            Future<void> pickTime() async {
+              final pickedTime = await showTimePicker(
+                context: dialogContext,
+                initialTime: TimeOfDay.fromDateTime(selectedDateTime),
+              );
+
+              if (pickedTime != null) {
+                setStateDialog(() {
+                  selectedDateTime = DateTime(
+                    selectedDateTime.year,
+                    selectedDateTime.month,
+                    selectedDateTime.day,
+                    pickedTime.hour,
+                    pickedTime.minute,
+                  );
+                  final hour = pickedTime.hour.toString().padLeft(2, '0');
+                  final minute = pickedTime.minute.toString().padLeft(2, '0');
+                  timeController.text = '$hour:$minute';
+                });
+              }
+            }
+
+            return AlertDialog(
+              title: Row(
+                children: [
+                  Icon(
+                    isEditing ? Icons.edit_calendar : Icons.add_circle,
+                    color: AppColors.primary,
+                    size: 28,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    isEditing ? 'Edit Session' : 'Schedule Session',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: dateController,
+                        readOnly: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Date (YYYY-MM-DD) *',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.calendar_today),
+                        ),
+                        onTap: pickDate,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please select a date';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: timeController,
+                        readOnly: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Time (HH:mm) *',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.access_time),
+                        ),
+                        onTap: pickTime,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please select a time';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: durationController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        decoration: const InputDecoration(
+                          labelText: 'Duration in hours *',
+                          hintText: 'Example: 1, 1.5, 2',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.timer),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a duration';
+                          }
+                          final sanitized = value.replaceAll(',', '.');
+                          final parsed = double.tryParse(sanitized);
+                          if (parsed == null || parsed <= 0) {
+                            return 'Duration must be greater than 0';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: AppColors.textSecondary),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    FocusScope.of(dialogContext).unfocus();
+                    if (!formKey.currentState!.validate()) return;
+
+                    if (!selectedDateTime.isAfter(DateTime.now())) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('The session date must be in the future'),
+                          backgroundColor: Colors.orange,
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
+                      return;
+                    }
+
+                    final durationValue =
+                        double.parse(durationController.text.replaceAll(',', '.'));
+
+                    Navigator.pop(dialogContext);
+
+                    if (isEditing) {
+                      await _updateSession(
+                        sessionId: existingSession!.id,
+                        appointmentDate: selectedDateTime,
+                        sessionTime: durationValue,
+                      );
+                    } else {
+                      await _createSession(
+                        appointmentDate: selectedDateTime,
+                        sessionTime: durationValue,
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text(isEditing ? 'Update' : 'Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _confirmDeleteSession(Session session) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        final dateFormatter = DateFormat('MMM dd, yyyy');
+        final timeFormatter = DateFormat('HH:mm');
+
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.red, size: 28),
+              SizedBox(width: 10),
+              Text(
+                'Delete Session',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Are you sure you want to delete this session?',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.withOpacity(0.3)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      dateFormatter.format(session.appointmentDate),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${timeFormatter.format(session.appointmentDate)} - ${session.sessionTime}h',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                '⚠️ This action cannot be undone.',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontStyle: FontStyle.italic,
+                  color: Colors.red,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(dialogContext);
+                await _deleteSession(session.id);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _createSession({
+    required DateTime appointmentDate,
+    required double sessionTime,
+  }) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final messenger = ScaffoldMessenger.of(context);
+
+    final professionalId = authProvider.professionalProfile?.id;
+    final token = authProvider.token;
+
+    if (professionalId == null || token == null) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Unable to identify the professional. Please log in again.'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final request = SessionCreateRequest(
+        appointmentDate: appointmentDate,
+        sessionTime: sessionTime,
+      );
+
+      await _sessionService.createSession(
+        professionalId: professionalId,
+        patientId: widget.patientId,
+        request: request,
+        token: token,
+      );
+
+      if (!mounted) return;
+
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Session scheduled successfully'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+
+      await _loadPatientData();
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Error scheduling session: ${e.toString().replaceAll('Exception: ', '')}'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _updateSession({
+    required int sessionId,
+    required DateTime appointmentDate,
+    required double sessionTime,
+  }) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final messenger = ScaffoldMessenger.of(context);
+
+    final professionalId = authProvider.professionalProfile?.id;
+    final token = authProvider.token;
+
+    if (professionalId == null || token == null) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Unable to identify the professional. Please log in again.'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final request = SessionUpdateRequest(
+        appointmentDate: appointmentDate,
+        sessionTime: sessionTime,
+      );
+
+      await _sessionService.updateSession(
+        professionalId: professionalId,
+        patientId: widget.patientId,
+        sessionId: sessionId,
+        request: request,
+        token: token,
+      );
+
+      if (!mounted) return;
+
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Session updated successfully'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+
+      await _loadPatientData();
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Error updating session: ${e.toString().replaceAll('Exception: ', '')}'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _deleteSession(int sessionId) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final messenger = ScaffoldMessenger.of(context);
+
+    final professionalId = authProvider.professionalProfile?.id;
+    final token = authProvider.token;
+
+    if (professionalId == null || token == null) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Unable to identify the professional. Please log in again.'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _sessionService.deleteSession(
+        professionalId: professionalId,
+        patientId: widget.patientId,
+        sessionId: sessionId,
+        token: token,
+      );
+
+      if (!mounted) return;
+
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Session deleted successfully'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+
+      await _loadPatientData();
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Error deleting session: ${e.toString().replaceAll('Exception: ', '')}'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   // Diálogo para agregar medicamento

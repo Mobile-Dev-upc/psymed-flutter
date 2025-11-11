@@ -4,7 +4,7 @@ class Session {
   final int patientId;
   final int professionalId;
   final DateTime appointmentDate;
-  final int sessionTime; // Duration in HOURS
+  final double sessionTime; // Duration in HOURS
 
   Session({
     required this.id,
@@ -20,7 +20,7 @@ class Session {
       patientId: _toInt(json['patientId']),
       professionalId: _toInt(json['professionalId']),
       appointmentDate: DateTime.parse(json['appointmentDate']),
-      sessionTime: _toInt(json['sessionTime']),
+      sessionTime: _toDouble(json['sessionTime']),
     );
   }
 
@@ -30,6 +30,13 @@ class Session {
     if (value is double) return value.toInt();
     if (value is String) return int.parse(value);
     throw Exception('Cannot convert $value to int');
+  }
+
+  static double _toDouble(dynamic value) {
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.parse(value);
+    throw Exception('Cannot convert $value to double');
   }
 
   Map<String, dynamic> toJson() {
@@ -55,4 +62,38 @@ class Session {
 
   // Helper para obtener el tiempo restante
   Duration get timeUntilSession => appointmentDate.difference(DateTime.now());
+}
+
+class SessionCreateRequest {
+  final DateTime appointmentDate;
+  final double sessionTime;
+
+  SessionCreateRequest({
+    required this.appointmentDate,
+    required this.sessionTime,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'appointmentDate': appointmentDate.toIso8601String(),
+      'sessionTime': sessionTime,
+    };
+  }
+}
+
+class SessionUpdateRequest {
+  final DateTime appointmentDate;
+  final double sessionTime;
+
+  SessionUpdateRequest({
+    required this.appointmentDate,
+    required this.sessionTime,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'appointmentDate': appointmentDate.toIso8601String(),
+      'sessionTime': sessionTime,
+    };
+  }
 }
