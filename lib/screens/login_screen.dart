@@ -40,7 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(authProvider.errorMessage ?? 'Error al iniciar sesión'),
+            content: Text(authProvider.errorMessage ?? 'Login error'),
             backgroundColor: Colors.red,
           ),
         );
@@ -69,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 30),
                 const Text(
-                  "Bienvenido",
+                  "Welcome",
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -77,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  "Inicia sesión con tu cuenta",
+                  "Sign in to your account",
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey[600],
@@ -87,14 +87,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextFormField(
                   controller: _usernameController,
                   decoration: const InputDecoration(
-                    labelText: "Usuario",
-                    hintText: "Ingresa tu nombre de usuario",
+                    labelText: "Username",
+                    hintText: "Enter your username",
                     prefixIcon: Icon(Icons.person_outline),
                     filled: true,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Por favor ingresa tu usuario';
+                      return 'Please enter your username';
                     }
                     return null;
                   },
@@ -104,14 +104,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _passwordController,
                   obscureText: true,
                   decoration: const InputDecoration(
-                    labelText: "Contraseña",
-                    hintText: "Ingresa tu contraseña",
+                    labelText: "Password",
+                    hintText: "Enter your password",
                     prefixIcon: Icon(Icons.lock_outline),
                     filled: true,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Por favor ingresa tu contraseña';
+                      return 'Please enter your password';
                     }
                     return null;
                   },
@@ -140,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               )
                             : const Text(
-                                "Iniciar Sesión",
+                                "Sign In",
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 16,
@@ -153,7 +153,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  "Si no tienes cuenta, contacta a tu profesional de salud",
+                  "If you don't have an account, contact your health professional",
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey[600],

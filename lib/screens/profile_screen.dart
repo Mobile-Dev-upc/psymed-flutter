@@ -27,17 +27,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Cerrar sesión'),
-        content: const Text('¿Estás seguro que deseas cerrar sesión?'),
+        title: const Text('Sign Out'),
+        content: const Text('Are you sure you want to sign out?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Cerrar sesión'),
+            child: const Text('Sign Out'),
           ),
         ],
       ),
@@ -60,7 +60,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Mi Perfil"),
+        title: const Text("My Profile"),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.white,
@@ -69,7 +69,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.red),
             onPressed: _handleLogout,
-            tooltip: 'Cerrar sesión',
+            tooltip: 'Sign Out',
           ),
         ],
       ),
@@ -98,7 +98,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'Bienvenido, ${user?.username ?? "Usuario"}',
+                      'Welcome, ${user?.username ?? "User"}',
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -106,7 +106,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 10),
                     const Text(
-                      'No se pudo cargar tu perfil',
+                      'Could not load your profile',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.grey),
                     ),
@@ -127,7 +127,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       },
                       icon: const Icon(Icons.refresh, color: Colors.white),
                       label: const Text(
-                        "Reintentar",
+                        "Retry",
                         style: TextStyle(color: Colors.white),
                       ),
                     ),
@@ -186,7 +186,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'Información Personal',
+                            'Personal Information',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -195,25 +195,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const SizedBox(height: 20),
                           _buildInfoRow(
                             Icons.email_outlined,
-                            'Correo Electrónico',
+                            'Email',
                             profile.email,
                           ),
                           const Divider(height: 30),
                           _buildInfoRow(
                             Icons.location_on_outlined,
-                            'Dirección',
+                            'Address',
                             profile.streetAddress,
                           ),
                           const Divider(height: 30),
                           _buildInfoRow(
                             Icons.badge_outlined,
-                            'ID de Paciente',
+                            'Patient ID',
                             '#${profile.id}',
                           ),
                           const Divider(height: 30),
                           _buildInfoRow(
                             Icons.medical_information_outlined,
-                            'ID de Profesional',
+                            'Professional ID',
                             '#${profile.professionalId}',
                           ),
                         ],
@@ -235,7 +235,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       onPressed: _handleLogout,
                       icon: const Icon(Icons.logout),
                       label: const Text(
-                        "Cerrar Sesión",
+                        "Sign Out",
                         style: TextStyle(fontSize: 16),
                       ),
                     ),

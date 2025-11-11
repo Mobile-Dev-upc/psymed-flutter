@@ -77,7 +77,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                       onPressed: _loadMedications,
                       icon: const Icon(Icons.refresh, color: Colors.white),
                       label: const Text(
-                        "Reintentar",
+                        "Retry",
                         style: TextStyle(color: Colors.white),
                       ),
                     ),
@@ -104,7 +104,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'No tienes medicamentos asignados',
+                      'No medications assigned',
                       style: TextStyle(
                         fontSize: 18,
                         color: Colors.grey[600],
@@ -113,7 +113,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      'Tu médico puede asignar medicamentos desde su panel',
+                      'Your doctor can assign medications from their panel',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[500],

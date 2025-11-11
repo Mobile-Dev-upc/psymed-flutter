@@ -97,7 +97,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                       onPressed: _loadSessions,
                       icon: const Icon(Icons.refresh, color: Colors.white),
                       label: const Text(
-                        "Reintentar",
+                        "Retry",
                         style: TextStyle(color: Colors.white),
                       ),
                     ),
@@ -123,7 +123,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'No tienes citas programadas',
+                      'No appointments scheduled',
                       style: TextStyle(
                         fontSize: 18,
                         color: Colors.grey[600],
@@ -132,7 +132,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      'Tu médico puede programar citas desde su panel',
+                      'Your doctor can schedule appointments from their panel',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[500],
@@ -166,10 +166,10 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                       )),
                   const SizedBox(height: 20),
                 ],
-                // Citas pasadas
+                // Past appointments
                 if (pastSessions.isNotEmpty) ...[
                   const Text(
-                    'Citas Anteriores',
+                    'Past Appointments',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,

@@ -59,7 +59,7 @@ class _HealthScreenState extends State<HealthScreen> {
   }
 
   Future<void> _saveReport() async {
-    // Verificar si ya se registró hoy
+    // Check if already reported today
     if (_hasReportedToday()) {
       showDialog(
         context: context,
@@ -68,16 +68,16 @@ class _HealthScreenState extends State<HealthScreen> {
             children: [
               Icon(Icons.info_outline, color: Colors.orange),
               SizedBox(width: 10),
-              Text('Ya registrado'),
+              Text('Already Registered'),
             ],
           ),
           content: const Text(
-            'Ya has registrado tu estado de ánimo hoy. Solo puedes registrarlo una vez al día.',
+            'You have already registered your mood today. You can only register it once per day.',
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Entendido'),
+              child: const Text('Got it'),
             ),
           ],
         ),
@@ -88,7 +88,7 @@ class _HealthScreenState extends State<HealthScreen> {
     if (selectedMood == -1) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Por favor selecciona tu estado de ánimo'),
+          content: Text('Please select your mood'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -98,7 +98,7 @@ class _HealthScreenState extends State<HealthScreen> {
     if (ratings.values.any((rating) => rating == 0)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Por favor completa todas las calificaciones'),
+          content: Text('Please complete all ratings'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -111,7 +111,7 @@ class _HealthScreenState extends State<HealthScreen> {
     if (authProvider.patientProfile == null || authProvider.token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Error: No se pudo obtener información del usuario'),
+          content: Text('Error: Could not get user information'),
           backgroundColor: Colors.red,
         ),
       );
@@ -131,21 +131,21 @@ class _HealthScreenState extends State<HealthScreen> {
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('✓ Reporte guardado exitosamente'),
+          content: Text('✓ Report saved successfully'),
           backgroundColor: Colors.green,
         ),
       );
-      // Resetear formulario
+      // Reset form
       setState(() {
         selectedMood = -1;
         ratings.updateAll((key, value) => 0);
       });
-      // Recargar para actualizar el estado
+      // Reload to update status
       await _loadReports();
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(reportProvider.errorMessage ?? 'Error al guardar reporte'),
+          content: Text(reportProvider.errorMessage ?? 'Error saving report'),
           backgroundColor: Colors.red,
         ),
       );
@@ -165,7 +165,7 @@ class _HealthScreenState extends State<HealthScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Banner informativo si ya registró hoy
+                // Info banner if already reported today
                 if (hasReportedToday)
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -184,7 +184,7 @@ class _HealthScreenState extends State<HealthScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '¡Registro completado!',
+                                'Registration complete!',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.green.shade900,
@@ -192,7 +192,7 @@ class _HealthScreenState extends State<HealthScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Ya registraste tu estado de ánimo hoy. Vuelve mañana.',
+                                'You already registered your mood today. Come back tomorrow.',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.green.shade700,
@@ -271,7 +271,7 @@ class _HealthScreenState extends State<HealthScreen> {
                           )
                         : Text(
                             hasReportedToday 
-                                ? "Ya registrado hoy" 
+                                ? "Already registered today" 
                                 : "Save",
                             style: const TextStyle(
                               color: Colors.white,
