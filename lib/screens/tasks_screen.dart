@@ -33,25 +33,19 @@ class _TasksScreenState extends State<TasksScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: const Text(
-          'My Tasks',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-      ),
-      body: Consumer<TaskProvider>(
-        builder: (context, taskProvider, child) {
-          if (taskProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    return Consumer<TaskProvider>(
+      builder: (context, taskProvider, child) {
+        if (taskProvider.isLoading) {
+          return Scaffold(
+            backgroundColor: Colors.grey[100],
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
 
-          if (taskProvider.error != null) {
-            return Center(
+        if (taskProvider.error != null) {
+          return Scaffold(
+            backgroundColor: Colors.grey[100],
+            body: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -82,11 +76,14 @@ class _TasksScreenState extends State<TasksScreen> {
                   ),
                 ],
               ),
-            );
-          }
+            ),
+          );
+        }
 
-          if (taskProvider.tasks.isEmpty) {
-            return Center(
+        if (taskProvider.tasks.isEmpty) {
+          return Scaffold(
+            backgroundColor: Colors.grey[100],
+            body: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -103,10 +100,13 @@ class _TasksScreenState extends State<TasksScreen> {
                   ),
                 ],
               ),
-            );
-          }
+            ),
+          );
+        }
 
-          return RefreshIndicator(
+        return Scaffold(
+          backgroundColor: Colors.grey[100],
+          body: RefreshIndicator(
             onRefresh: _loadTasks,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -131,9 +131,9 @@ class _TasksScreenState extends State<TasksScreen> {
                 ],
               ),
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 

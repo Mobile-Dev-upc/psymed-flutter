@@ -14,7 +14,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 5; // Profile por defecto
+  int _selectedIndex = 0; // Appointments por defecto
 
   final List<Widget> _pages = const [
     AppointmentsScreen(),
@@ -22,7 +22,6 @@ class _HomeScreenState extends State<HomeScreen> {
     MedicationScreen(),
     TasksScreen(),
     AnalyticsScreen(),
-    ProfileScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -31,9 +30,33 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _navigateToProfile() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ProfileScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          _getTitle(),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person_outline, size: 28),
+            onPressed: _navigateToProfile,
+            tooltip: 'Profile',
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
@@ -62,12 +85,25 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.bar_chart),
             label: "Analytics",
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            label: "Profile",
-          ),
         ],
       ),
     );
+  }
+
+  String _getTitle() {
+    switch (_selectedIndex) {
+      case 0:
+        return 'Appointments';
+      case 1:
+        return 'Health';
+      case 2:
+        return 'Medication';
+      case 3:
+        return 'My Tasks';
+      case 4:
+        return 'Analytics Dashboard';
+      default:
+        return 'PsyMed';
+    }
   }
 }

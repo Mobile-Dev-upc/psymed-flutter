@@ -91,52 +91,57 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: const Text(
-          'Analytics Dashboard',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: Colors.black,
-          unselectedLabelColor: Colors.grey,
-          indicatorColor: Colors.black,
-          indicatorWeight: 3,
-          tabs: const [
-            Tab(text: 'Emotional State'),
-            Tab(text: 'Physical Health'),
-          ],
-        ),
-      ),
-      body: Consumer<AnalyticsProvider>(
-        builder: (context, analyticsProvider, child) {
-          if (analyticsProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          return RefreshIndicator(
-            onRefresh: _loadAnalytics,
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildEmotionalTab(analyticsProvider),
-                _buildPhysicalTab(analyticsProvider),
-              ],
-            ),
+    return Consumer<AnalyticsProvider>(
+      builder: (context, analyticsProvider, child) {
+        if (analyticsProvider.isLoading) {
+          return Scaffold(
+            backgroundColor: Colors.grey[100],
+            body: const Center(child: CircularProgressIndicator()),
           );
-        },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddEntryDialog(),
-        backgroundColor: Colors.black,
-        label: const Text('Add Entry'),
-        icon: const Icon(Icons.add),
-      ),
+        }
+
+        return Scaffold(
+          backgroundColor: Colors.grey[100],
+          body: Column(
+            children: [
+              // TabBar sin AppBar
+              Container(
+                color: Colors.white,
+                child: TabBar(
+                  controller: _tabController,
+                  labelColor: Colors.black,
+                  unselectedLabelColor: Colors.grey,
+                  indicatorColor: Colors.black,
+                  indicatorWeight: 3,
+                  tabs: const [
+                    Tab(text: 'Emotional State'),
+                    Tab(text: 'Physical Health'),
+                  ],
+                ),
+              ),
+              // TabBarView
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: _loadAnalytics,
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildEmotionalTab(analyticsProvider),
+                      _buildPhysicalTab(analyticsProvider),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () => _showAddEntryDialog(),
+            backgroundColor: Colors.black,
+            label: const Text('Add Entry'),
+            icon: const Icon(Icons.add),
+          ),
+        );
+      },
     );
   }
 
