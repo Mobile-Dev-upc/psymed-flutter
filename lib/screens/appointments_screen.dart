@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:trying_flutter/models/session_model.dart';
 import '../providers/auth_provider.dart';
 import '../providers/session_provider.dart';
+import '../core/theme/app_colors.dart';
 
 class AppointmentsScreen extends StatefulWidget {
   const AppointmentsScreen({super.key});
@@ -57,7 +58,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
       builder: (context, sessionProvider, child) {
         if (sessionProvider.isLoading) {
           return Scaffold(
-            backgroundColor: Colors.grey[100],
+            backgroundColor: AppColors.background,
             body: const Center(
               child: CircularProgressIndicator(),
             ),
@@ -66,7 +67,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
 
         if (sessionProvider.errorMessage != null) {
           return Scaffold(
-            backgroundColor: Colors.grey[100],
+            backgroundColor: AppColors.background,
             body: Center(
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
@@ -108,7 +109,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
 
         if (!sessionProvider.hasSessions) {
           return Scaffold(
-            backgroundColor: Colors.grey[100],
+            backgroundColor: AppColors.background,
             body: Center(
               child: Padding(
                 padding: const EdgeInsets.all(20.0),

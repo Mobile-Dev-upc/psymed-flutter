@@ -6,6 +6,7 @@ import '../providers/analytics_provider.dart';
 import '../providers/auth_provider.dart';
 import '../models/mood_state_model.dart';
 import '../models/biological_functions_model.dart';
+import '../core/theme/app_colors.dart';
 
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
@@ -95,7 +96,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with SingleTickerProv
       builder: (context, analyticsProvider, child) {
         if (analyticsProvider.isLoading) {
           return Scaffold(
-            backgroundColor: Colors.grey[100],
+            backgroundColor: AppColors.background,
             body: const Center(child: CircularProgressIndicator()),
           );
         }

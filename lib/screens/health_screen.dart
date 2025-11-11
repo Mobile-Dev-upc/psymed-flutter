@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/auth_provider.dart';
 import '../providers/patient_report_provider.dart';
+import '../core/theme/app_colors.dart';
 
 class HealthScreen extends StatefulWidget {
   const HealthScreen({super.key});
@@ -159,7 +160,7 @@ class _HealthScreenState extends State<HealthScreen> {
         final hasReportedToday = reportProvider.hasReportedToday();
 
         return Scaffold(
-          backgroundColor: Colors.grey[100],
+          backgroundColor: AppColors.background,
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: Column(

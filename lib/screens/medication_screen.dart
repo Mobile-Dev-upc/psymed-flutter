@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/medication_provider.dart';
+import '../core/theme/app_colors.dart';
 
 class MedicationScreen extends StatefulWidget {
   const MedicationScreen({super.key});
@@ -38,7 +39,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
       builder: (context, medicationProvider, child) {
         if (medicationProvider.isLoading) {
           return Scaffold(
-            backgroundColor: Colors.grey[100],
+            backgroundColor: AppColors.background,
             body: const Center(
               child: CircularProgressIndicator(),
             ),
@@ -47,7 +48,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
 
         if (medicationProvider.errorMessage != null) {
           return Scaffold(
-            backgroundColor: Colors.grey[100],
+            backgroundColor: AppColors.background,
             body: Center(
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
@@ -90,7 +91,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
 
         if (!medicationProvider.hasMedications) {
           return Scaffold(
-            backgroundColor: Colors.grey[100],
+            backgroundColor: AppColors.background,
             body: Center(
               child: Padding(
                 padding: const EdgeInsets.all(20.0),

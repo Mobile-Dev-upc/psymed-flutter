@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/task_provider.dart';
 import '../providers/auth_provider.dart';
 import '../models/task_model.dart';
+import '../core/theme/app_colors.dart';
 
 class TasksScreen extends StatefulWidget {
   const TasksScreen({super.key});
@@ -37,14 +38,14 @@ class _TasksScreenState extends State<TasksScreen> {
       builder: (context, taskProvider, child) {
         if (taskProvider.isLoading) {
           return Scaffold(
-            backgroundColor: Colors.grey[100],
+            backgroundColor: AppColors.background,
             body: const Center(child: CircularProgressIndicator()),
           );
         }
 
         if (taskProvider.error != null) {
           return Scaffold(
-            backgroundColor: Colors.grey[100],
+            backgroundColor: AppColors.background,
             body: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -82,7 +83,7 @@ class _TasksScreenState extends State<TasksScreen> {
 
         if (taskProvider.tasks.isEmpty) {
           return Scaffold(
-            backgroundColor: Colors.grey[100],
+            backgroundColor: AppColors.background,
             body: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -140,15 +141,11 @@ class _TasksScreenState extends State<TasksScreen> {
   Widget _buildProgressCard(TaskProvider taskProvider) {
     return Container(
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF667eea), Color(0xFF764ba2)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        gradient: AppColors.primaryGradient,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF667eea).withOpacity(0.3),
+            color: AppColors.shadowColor,
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
