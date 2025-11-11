@@ -402,20 +402,32 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
   }
 
   Widget _buildMedicationsTab() {
-    if (_medications.isEmpty) {
-      return _buildEmptyState(
-        icon: Icons.medication,
-        message: 'No medications prescribed',
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16.0),
-      itemCount: _medications.length,
-      itemBuilder: (context, index) {
-        final medication = _medications[index];
-        return _buildMedicationCard(medication);
-      },
+    return Stack(
+      children: [
+        if (_medications.isEmpty)
+          _buildEmptyState(
+            icon: Icons.medication,
+            message: 'No medications prescribed',
+          )
+        else
+          ListView.builder(
+            padding: const EdgeInsets.all(16.0),
+            itemCount: _medications.length,
+            itemBuilder: (context, index) {
+              final medication = _medications[index];
+              return _buildMedicationCard(medication);
+            },
+          ),
+        Positioned(
+          bottom: 16,
+          right: 16,
+          child: FloatingActionButton(
+            onPressed: _showAddMedicationDialog,
+            backgroundColor: AppColors.primary,
+            child: const Icon(Icons.add, color: Colors.white),
+          ),
+        ),
+      ],
     );
   }
 
@@ -466,6 +478,21 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
                       ),
                     ],
                   ),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit, color: AppColors.primary, size: 20),
+                      onPressed: () => _showEditMedicationDialog(medication),
+                      tooltip: 'Edit',
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                      onPressed: () => _confirmDeleteMedication(medication),
+                      tooltip: 'Delete',
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -1153,6 +1180,469 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
         ),
       ],
     );
+  }
+
+  // Diálogo para agregar medicamento
+  void _showAddMedicationDialog() {
+    final nameController = TextEditingController();
+    final descriptionController = TextEditingController();
+    final intervalController = TextEditingController();
+    final quantityController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.add_circle, color: AppColors.primary, size: 28),
+              SizedBox(width: 10),
+              Text('Add Medication', style: TextStyle(fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Medication Name *',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.medication),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter medication name';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: descriptionController,
+                    decoration: const InputDecoration(
+                      labelText: 'Description *',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.description),
+                    ),
+                    maxLines: 2,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter description';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: intervalController,
+                    decoration: const InputDecoration(
+                      labelText: 'Interval (e.g., Every 8 hours) *',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.schedule),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter interval';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: quantityController,
+                    decoration: const InputDecoration(
+                      labelText: 'Quantity (e.g., 1 tablet) *',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.numbers),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter quantity';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (formKey.currentState!.validate()) {
+                  Navigator.pop(dialogContext);
+                  await _addMedication(
+                    nameController.text,
+                    descriptionController.text,
+                    intervalController.text,
+                    quantityController.text,
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Add'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Diálogo para editar medicamento
+  void _showEditMedicationDialog(Medication medication) {
+    final nameController = TextEditingController(text: medication.name);
+    final descriptionController = TextEditingController(text: medication.description);
+    final intervalController = TextEditingController(text: medication.interval);
+    final quantityController = TextEditingController(text: medication.quantity);
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.edit, color: AppColors.primary, size: 28),
+              SizedBox(width: 10),
+              Text('Edit Medication', style: TextStyle(fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Medication Name *',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.medication),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter medication name';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: descriptionController,
+                    decoration: const InputDecoration(
+                      labelText: 'Description *',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.description),
+                    ),
+                    maxLines: 2,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter description';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: intervalController,
+                    decoration: const InputDecoration(
+                      labelText: 'Interval (e.g., Every 8 hours) *',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.schedule),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter interval';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: quantityController,
+                    decoration: const InputDecoration(
+                      labelText: 'Quantity (e.g., 1 tablet) *',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.numbers),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter quantity';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (formKey.currentState!.validate()) {
+                  Navigator.pop(dialogContext);
+                  await _updateMedication(
+                    medication.id,
+                    nameController.text,
+                    descriptionController.text,
+                    intervalController.text,
+                    quantityController.text,
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Update'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Confirmación para eliminar medicamento
+  void _confirmDeleteMedication(Medication medication) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.red, size: 28),
+              SizedBox(width: 10),
+              Text('Delete Medication', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Are you sure you want to delete this medication?',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.withOpacity(0.3)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      medication.name,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      medication.description,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                '⚠️ This action cannot be undone.',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontStyle: FontStyle.italic,
+                  color: Colors.red,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(dialogContext);
+                await _deleteMedication(medication.id);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Agregar medicamento
+  Future<void> _addMedication(String name, String description, String interval, String quantity) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final messenger = ScaffoldMessenger.of(context);
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final request = MedicationRequest(
+        name: name,
+        description: description,
+        patientId: widget.patientId,
+        interval: interval,
+        quantity: quantity,
+      );
+
+      await _medicationService.createMedication(request, authProvider.token!);
+
+      if (!mounted) return;
+
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Medication added successfully'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+
+      // Recargar datos
+      await _loadPatientData();
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Error adding medication: ${e.toString().replaceAll('Exception: ', '')}'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  // Actualizar medicamento
+  Future<void> _updateMedication(int medicationId, String name, String description, String interval, String quantity) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final messenger = ScaffoldMessenger.of(context);
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final request = MedicationUpdateRequest(
+        name: name,
+        description: description,
+        interval: interval,
+        quantity: quantity,
+      );
+
+      await _medicationService.updateMedication(medicationId, request, authProvider.token!);
+
+      if (!mounted) return;
+
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Medication updated successfully'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+
+      // Recargar datos
+      await _loadPatientData();
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Error updating medication: ${e.toString().replaceAll('Exception: ', '')}'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  // Eliminar medicamento
+  Future<void> _deleteMedication(int medicationId) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final messenger = ScaffoldMessenger.of(context);
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _medicationService.deleteMedication(medicationId, authProvider.token!);
+
+      if (!mounted) return;
+
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Medication deleted successfully'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+
+      // Recargar datos
+      await _loadPatientData();
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Error deleting medication: ${e.toString().replaceAll('Exception: ', '')}'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 }
 
