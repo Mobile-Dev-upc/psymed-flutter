@@ -34,31 +34,21 @@ class _MedicationScreenState extends State<MedicationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Medication"),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadMedications,
-            tooltip: 'Actualizar',
-          ),
-        ],
-      ),
-      body: Consumer<MedicationProvider>(
-        builder: (context, medicationProvider, child) {
-          if (medicationProvider.isLoading) {
-            return const Center(
+    return Consumer<MedicationProvider>(
+      builder: (context, medicationProvider, child) {
+        if (medicationProvider.isLoading) {
+          return Scaffold(
+            backgroundColor: Colors.grey[100],
+            body: const Center(
               child: CircularProgressIndicator(),
-            );
-          }
+            ),
+          );
+        }
 
-          if (medicationProvider.errorMessage != null) {
-            return Center(
+        if (medicationProvider.errorMessage != null) {
+          return Scaffold(
+            backgroundColor: Colors.grey[100],
+            body: Center(
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Column(
@@ -94,11 +84,14 @@ class _MedicationScreenState extends State<MedicationScreen> {
                   ],
                 ),
               ),
-            );
-          }
+            ),
+          );
+        }
 
-          if (!medicationProvider.hasMedications) {
-            return Center(
+        if (!medicationProvider.hasMedications) {
+          return Scaffold(
+            backgroundColor: Colors.grey[100],
+            body: Center(
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Column(
@@ -130,10 +123,13 @@ class _MedicationScreenState extends State<MedicationScreen> {
                   ],
                 ),
               ),
-            );
-          }
+            ),
+          );
+        }
 
-          return RefreshIndicator(
+        return Scaffold(
+          backgroundColor: Colors.grey[100],
+          body: RefreshIndicator(
             onRefresh: _loadMedications,
             child: ListView.builder(
               padding: const EdgeInsets.all(20),
@@ -208,9 +204,9 @@ class _MedicationScreenState extends State<MedicationScreen> {
                 );
               },
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 

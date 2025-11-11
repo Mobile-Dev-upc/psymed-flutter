@@ -54,31 +54,21 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Appointments"),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadSessions,
-            tooltip: 'Actualizar',
-          ),
-        ],
-      ),
-      body: Consumer<SessionProvider>(
-        builder: (context, sessionProvider, child) {
-          if (sessionProvider.isLoading) {
-            return const Center(
+    return Consumer<SessionProvider>(
+      builder: (context, sessionProvider, child) {
+        if (sessionProvider.isLoading) {
+          return Scaffold(
+            backgroundColor: Colors.grey[100],
+            body: const Center(
               child: CircularProgressIndicator(),
-            );
-          }
+            ),
+          );
+        }
 
-          if (sessionProvider.errorMessage != null) {
-            return Center(
+        if (sessionProvider.errorMessage != null) {
+          return Scaffold(
+            backgroundColor: Colors.grey[100],
+            body: Center(
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Column(
@@ -114,11 +104,13 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                   ],
                 ),
               ),
-            );
+            ));
           }
 
-          if (!sessionProvider.hasSessions) {
-            return Center(
+        if (!sessionProvider.hasSessions) {
+          return Scaffold(
+            backgroundColor: Colors.grey[100],
+            body: Center(
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Column(
@@ -150,26 +142,23 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                   ],
                 ),
               ),
-            );
-          }
+            ),
+          );
+        }
 
-          final futureSessions = sessionProvider.futureSessions;
-          final pastSessions = sessionProvider.pastSessions;
+        final futureSessions = sessionProvider.futureSessions;
+        final pastSessions = sessionProvider.pastSessions;
 
-          return RefreshIndicator(
+        return Scaffold(
+          backgroundColor: Colors.grey[100],
+          body: RefreshIndicator(
             onRefresh: _loadSessions,
             child: ListView(
               padding: const EdgeInsets.all(20),
               children: [
                 // Próximas citas
                 if (futureSessions.isNotEmpty) ...[
-                  const Text(
-                    'Próximas Citas',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                
                   const SizedBox(height: 10),
                   ...futureSessions.map((session) => _buildSessionCard(
                         session,
@@ -194,9 +183,9 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                 ],
               ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 

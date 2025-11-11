@@ -154,26 +154,13 @@ class _HealthScreenState extends State<HealthScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Health"),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadReports,
-            tooltip: 'Actualizar',
-          ),
-        ],
-      ),
-      body: Consumer<PatientReportProvider>(
-        builder: (context, reportProvider, child) {
-          final hasReportedToday = reportProvider.hasReportedToday();
+    return Consumer<PatientReportProvider>(
+      builder: (context, reportProvider, child) {
+        final hasReportedToday = reportProvider.hasReportedToday();
 
-          return SingleChildScrollView(
+        return Scaffold(
+          backgroundColor: Colors.grey[100],
+          body: SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -295,9 +282,9 @@ class _HealthScreenState extends State<HealthScreen> {
                 ),
               ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
