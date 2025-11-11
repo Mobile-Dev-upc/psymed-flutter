@@ -64,15 +64,16 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 20),
                 Center(
                   child: Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
+                    width: 180,
+                    height: 180,
+                    decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: AppColors.primaryGradient,
                     ),
-                    child: const Icon(
-                      Icons.psychology,
-                      size: 80,
-                      color: Colors.white,
+                    child: ClipOval(
+                      child: Image.asset(
+                        'assets/PSYMED.png',
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                 ),
