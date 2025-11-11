@@ -189,13 +189,13 @@ class _MedicationScreenState extends State<MedicationScreen> {
                         const Divider(height: 20),
                         _buildInfoRow(
                           Icons.access_time,
-                          'Intervalo',
+                          'Interval',
                           medication.interval,
                         ),
                         const SizedBox(height: 8),
                         _buildInfoRow(
                           Icons.local_pharmacy,
-                          'Cantidad',
+                          'Amount',
                           medication.quantity,
                         ),
                       ],

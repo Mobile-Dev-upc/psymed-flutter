@@ -266,7 +266,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                 Icon(Icons.access_time, size: 18, color: Colors.grey[600]),
                 const SizedBox(width: 8),
                 Text(
-                  'Duración: ',
+                  'Duration: ',
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey[600],
@@ -287,7 +287,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                 Icon(Icons.person, size: 18, color: Colors.grey[600]),
                 const SizedBox(width: 8),
                 Text(
-                  'Profesional ID: ',
+                  'Professional ID: ',
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey[600],
