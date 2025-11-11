@@ -95,9 +95,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with SingleTickerProv
     return Consumer<AnalyticsProvider>(
       builder: (context, analyticsProvider, child) {
         if (analyticsProvider.isLoading) {
-          return Scaffold(
+          return const Scaffold(
             backgroundColor: AppColors.background,
-            body: const Center(child: CircularProgressIndicator()),
+            body: Center(child: CircularProgressIndicator()),
           );
         }
 

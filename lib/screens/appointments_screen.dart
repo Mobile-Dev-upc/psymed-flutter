@@ -57,9 +57,9 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     return Consumer<SessionProvider>(
       builder: (context, sessionProvider, child) {
         if (sessionProvider.isLoading) {
-          return Scaffold(
+          return const Scaffold(
             backgroundColor: AppColors.background,
-            body: const Center(
+            body: Center(
               child: CircularProgressIndicator(),
             ),
           );

@@ -37,9 +37,9 @@ class _TasksScreenState extends State<TasksScreen> {
     return Consumer<TaskProvider>(
       builder: (context, taskProvider, child) {
         if (taskProvider.isLoading) {
-          return Scaffold(
+          return const Scaffold(
             backgroundColor: AppColors.background,
-            body: const Center(child: CircularProgressIndicator()),
+            body: Center(child: CircularProgressIndicator()),
           );
         }
 

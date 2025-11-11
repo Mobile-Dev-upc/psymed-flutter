@@ -38,9 +38,9 @@ class _MedicationScreenState extends State<MedicationScreen> {
     return Consumer<MedicationProvider>(
       builder: (context, medicationProvider, child) {
         if (medicationProvider.isLoading) {
-          return Scaffold(
+          return const Scaffold(
             backgroundColor: AppColors.background,
-            body: const Center(
+            body: Center(
               child: CircularProgressIndicator(),
             ),
           );
