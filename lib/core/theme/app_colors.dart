@@ -1,18 +1,18 @@
 // lib/core/theme/app_colors.dart
 import 'package:flutter/material.dart';
 
-/// App color palette
+/// App color palette - Mint/Teal theme
 /// Ordered from darkest to lightest
 class AppColors {
   // Primary color palette (darkest to lightest)
-  static const Color primary = Color(0xFF376081);      // Darkest
-  static const Color primaryMediumDark = Color(0xFF216B83);
-  static const Color primaryMedium = Color(0xFF1F8792);
-  static const Color primaryMediumLight = Color(0xFF45B5A9);
-  static const Color primaryLight = Color(0xFF8FF7C6); // Lightest
+  static const Color primary = Color(0xFF308B82);           // Verde petróleo (Darkest)
+  static const Color primaryMedium = Color(0xFF69BFB6);     // Verde agua medio
+  static const Color primaryLight = Color(0xFFE5FFFC);      // Verde menta muy claro
+  static const Color primaryLighter = Color(0xFFE7FFFD);    // Verde menta claro
+  static const Color primaryLightest = Color(0xFFE9FFFF);   // Verde menta muy pálido (Lightest)
   
   // Background colors
-  static const Color background = Color(0xFFF9F9F9);
+  static const Color background = Color(0xFFF9F9F9);        // Fondo blanco grisáceo
   static const Color cardBackground = Colors.white;
   
   // Gradient combinations
@@ -23,13 +23,13 @@ class AppColors {
   );
   
   static LinearGradient get accentGradient => const LinearGradient(
-    colors: [primaryMedium, primaryMediumLight],
+    colors: [primaryMedium, primaryLight],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
   
   static LinearGradient get lightGradient => const LinearGradient(
-    colors: [primaryMediumLight, primaryLight],
+    colors: [primaryLight, primaryLightest],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

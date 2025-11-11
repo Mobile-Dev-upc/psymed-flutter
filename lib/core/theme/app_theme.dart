@@ -9,7 +9,7 @@ class AppTheme {
       colorScheme: ColorScheme.light(
         primary: AppColors.primary,
         secondary: AppColors.primaryMedium,
-        tertiary: AppColors.primaryMediumLight,
+        tertiary: AppColors.primaryLight,
         surface: AppColors.cardBackground,
         error: AppColors.error,
       ),
