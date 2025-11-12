@@ -727,23 +727,12 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
           ListView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
             children: [
-              Container(
-                padding: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: AppColors.cardBackground,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.primary.withOpacity(0.2)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildTaskStat('Total', _tasks.length.toString(), Colors.blue),
-                    _buildTaskStat('Pending', pendingTasks.toString(), Colors.orange),
-                    _buildTaskStat('Completed', completedTasks.toString(), Colors.green),
-                  ],
-                ),
+              _buildPatientTaskProgress(
+                total: _tasks.length,
+                completed: completedTasks,
+                pending: pendingTasks,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
               ..._tasks.map(_buildTaskCard).toList(),
             ],
           ),
@@ -761,23 +750,97 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
     );
   }
 
-  Widget _buildTaskStat(String label, String value, Color color) {
+  Widget _buildPatientTaskProgress({
+    required int total,
+    required int completed,
+    required int pending,
+  }) {
+    final completionRate = total == 0 ? 0.0 : (completed / total) * 100;
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: AppColors.primaryGradient,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowColor,
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Task Progress',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildProgressStatItem(
+                label: 'Completed',
+                value: completed.toString(),
+                icon: Icons.check_circle,
+              ),
+              Container(width: 1, height: 40, color: Colors.white30),
+              _buildProgressStatItem(
+                label: 'Pending',
+                value: pending.toString(),
+                icon: Icons.pending,
+              ),
+              Container(width: 1, height: 40, color: Colors.white30),
+              _buildProgressStatItem(
+                label: 'Rate',
+                value: '${completionRate.toStringAsFixed(0)}%',
+                icon: Icons.trending_up,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: completionRate / 100,
+              backgroundColor: Colors.white30,
+              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+              minHeight: 8,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressStatItem({
+    required String label,
+    required String value,
+    required IconData icon,
+  }) {
     return Column(
       children: [
+        Icon(icon, color: Colors.white, size: 28),
+        const SizedBox(height: 8),
         Text(
           value,
-          style: TextStyle(
+          style: const TextStyle(
+            color: Colors.white,
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: color,
           ),
         ),
-        const SizedBox(height: 4),
         Text(
           label,
           style: const TextStyle(
+            color: Colors.white70,
             fontSize: 12,
-            color: AppColors.textSecondary,
           ),
         ),
       ],
@@ -861,25 +924,43 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
                 ),
                 const SizedBox(width: 12),
                 Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    IconButton(
-                      icon: Icon(
-                        isCompleted ? Icons.check_box : Icons.check_box_outline_blank,
-                        color: isCompleted ? Colors.green : AppColors.textSecondary,
-                        size: 22,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
                       ),
-                      tooltip: isCompleted ? 'Mark as pending' : 'Mark as completed',
-                      onPressed: () => _toggleTaskStatus(task),
+                      decoration: BoxDecoration(
+                        color: isCompleted
+                            ? Colors.green.withOpacity(0.12)
+                            : Colors.orange.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        isCompleted ? 'Completed' : 'Pending',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: isCompleted ? Colors.green : Colors.orange,
+                        ),
+                      ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.edit, size: 20, color: AppColors.primary),
-                      tooltip: 'Edit',
-                      onPressed: () => _showEditTaskDialog(task),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, size: 20, color: Colors.red),
-                      tooltip: 'Delete',
-                      onPressed: () => _confirmDeleteTask(task),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit, size: 20, color: AppColors.primary),
+                          tooltip: 'Edit',
+                          onPressed: () => _showEditTaskDialog(task),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, size: 20, color: Colors.red),
+                          tooltip: 'Delete',
+                          onPressed: () => _confirmDeleteTask(task),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -1368,64 +1449,6 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
       messenger.showSnackBar(
         SnackBar(
           content: Text('Error deleting task: ${e.toString().replaceAll('Exception: ', '')}'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _toggleTaskStatus(Task task) async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final messenger = ScaffoldMessenger.of(context);
-
-    final token = authProvider.token;
-    if (token == null) {
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Authentication token not found. Please log in again.'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      if (task.status == 0) {
-        await _taskService.markTaskComplete(task.idSession, int.parse(task.id), token);
-      } else {
-        await _taskService.markTaskIncomplete(task.idSession, int.parse(task.id), token);
-      }
-
-      if (!mounted) return;
-
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(task.status == 0
-              ? 'Task marked as completed'
-              : 'Task marked as pending'),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 2),
-        ),
-      );
-
-      await _loadPatientData();
-    } catch (e) {
-      if (!mounted) return;
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('Error updating task: ${e.toString().replaceAll('Exception: ', '')}'),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 3),
         ),
