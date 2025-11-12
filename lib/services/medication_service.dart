@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import '../models/medication_model.dart';
 
 class MedicationService {
-  static const String baseUrl = 'http://192.168.1.71:8080/api/v1';
+  static const String baseUrl = 'https://psymed-backend-new.onrender.com/api/v1';
 
   // Helper para parsear respuestas
   dynamic _parseResponse(http.Response response) {
@@ -38,11 +38,6 @@ class MedicationService {
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',
         },
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Timeout: El servidor no respondió a tiempo');
-        },
       );
 
       if (response.statusCode == 200) {
@@ -75,11 +70,6 @@ class MedicationService {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',
-        },
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Timeout: El servidor no respondió a tiempo');
         },
       );
 
@@ -115,11 +105,6 @@ class MedicationService {
           'Authorization': 'Bearer $token',
         },
         body: json.encode(request.toJson()),
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Timeout: El servidor no respondió a tiempo');
-        },
       );
 
       print('Create Response Status: ${response.statusCode}');
@@ -159,11 +144,6 @@ class MedicationService {
           'Authorization': 'Bearer $token',
         },
         body: json.encode(request.toJson()),
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Timeout: El servidor no respondió a tiempo');
-        },
       );
 
       print('Update Response Status: ${response.statusCode}');
@@ -202,11 +182,6 @@ class MedicationService {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',
-        },
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Timeout: El servidor no respondió a tiempo');
         },
       );
 

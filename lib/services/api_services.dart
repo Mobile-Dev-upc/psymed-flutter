@@ -8,7 +8,7 @@ class ApiService {
   // Para emulador Android usa: http://10.0.2.2:8080/api/v1
   // Para emulador iOS usa: http://localhost:8080/api/v1
   // Para dispositivo físico usa tu IP local: http://192.168.x.x:8080/api/v1
-  static const String baseUrl = 'http://192.168.1.71:8080/api/v1';
+  static const String baseUrl = 'https://psymed-backend-new.onrender.com/api/v1';
   
   // Helper method para manejar respuestas y errores
   dynamic _parseResponse(http.Response response) {
@@ -45,11 +45,6 @@ class ApiService {
           'Accept': 'application/json',
         },
         body: json.encode(request.toJson()),
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Timeout: El servidor no respondió a tiempo');
-        },
       );
       
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -84,11 +79,6 @@ class ApiService {
           'Accept': 'application/json',
         },
         body: json.encode(request.toJson()),
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Timeout: El servidor no respondió a tiempo');
-        },
       );
       
       if (response.statusCode == 200) {
@@ -123,11 +113,6 @@ class ApiService {
           'Authorization': 'Bearer $token',
         },
         body: json.encode(request.toJson()),
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Timeout: El servidor no respondió a tiempo');
-        },
       );
       
       print('Response status: ${response.statusCode}');
@@ -168,11 +153,6 @@ class ApiService {
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',
         },
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Timeout: El servidor no respondió a tiempo');
-        },
       );
       
       if (response.statusCode == 200) {
@@ -203,11 +183,6 @@ class ApiService {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',
-        },
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Timeout: El servidor no respondió a tiempo');
         },
       );
       
@@ -241,11 +216,6 @@ class ApiService {
           'Accept': 'application/json',
         },
         body: json.encode(request.toJson()),
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Timeout: El servidor no respondió a tiempo');
-        },
       );
       
       print('Response status: ${response.statusCode}');
@@ -283,11 +253,6 @@ class ApiService {
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',
         },
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Timeout: El servidor no respondió a tiempo');
-        },
       );
       
       if (response.statusCode == 200) {
@@ -323,11 +288,6 @@ class ApiService {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',
-        },
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Timeout: El servidor no respondió a tiempo');
         },
       );
       
@@ -402,11 +362,6 @@ class ApiService {
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',
         },
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Timeout: El servidor no respondió a tiempo');
-        },
       );
       
       if (response.statusCode == 200) {
@@ -439,11 +394,6 @@ class ApiService {
           'Authorization': 'Bearer $token',
         },
         body: json.encode(request.toJson()),
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Timeout: El servidor no respondió a tiempo');
-        },
       );
       
       print('Update Response Status Code: ${response.statusCode}');
@@ -477,11 +427,6 @@ class ApiService {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',
-        },
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Timeout: El servidor no respondió a tiempo');
         },
       );
       

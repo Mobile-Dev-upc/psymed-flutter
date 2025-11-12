@@ -1,4 +1,5 @@
 // lib/screens/patient_detail_screen.dart
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -79,25 +80,48 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
     }
 
     try {
-      // Cargar datos en paralelo
-      final results = await Future.wait([
-        _apiService.getPatientProfileById(widget.patientId, token),
-        _medicationService.getMedicationsByPatient(widget.patientId, token),
-        _sessionService.getPatientSessions(widget.patientId, token),
-        _taskService.getTasksByPatientId(widget.patientId, token),
-        _analyticsService.getMoodStates(widget.patientId, token),
-        _analyticsService.getBiologicalFunctions(widget.patientId, token),
-      ]);
+      final patientProfile =
+          await _apiService.getPatientProfileById(widget.patientId, token);
+      final medications =
+          await _medicationService.getMedicationsByPatient(widget.patientId, token);
+      final sessions =
+          await _sessionService.getPatientSessions(widget.patientId, token);
+
+      List<Task> tasks = [];
+      String? tasksError;
+      try {
+        tasks = await _taskService.getTasksByPatientId(widget.patientId, token);
+      } catch (taskError) {
+        tasksError = taskError.toString().replaceAll('Exception: ', '');
+        debugPrint('Error loading tasks: $tasksError');
+      }
+
+      final moodStates =
+          await _analyticsService.getMoodStates(widget.patientId, token);
+      final biologicalFunctions =
+          await _analyticsService.getBiologicalFunctions(widget.patientId, token);
 
       setState(() {
-        _patientProfile = results[0] as PatientProfile;
-        _medications = results[1] as List<Medication>;
-        _sessions = results[2] as List<Session>;
-        _tasks = results[3] as List<Task>;
-        _moodStates = results[4] as List<MoodState>;
-        _biologicalFunctions = results[5] as List<BiologicalFunctions>;
+        _patientProfile = patientProfile;
+        _medications = medications;
+        _sessions = sessions;
+        _tasks = tasks;
+        _moodStates = moodStates;
+        _biologicalFunctions = biologicalFunctions;
         _isLoading = false;
       });
+
+      if (tasksError != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Tasks could not be loaded: $tasksError',
+            ),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     } catch (e) {
       setState(() {
         _errorMessage = e.toString().replaceAll('Exception: ', '');

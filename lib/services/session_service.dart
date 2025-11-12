@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import '../models/session_model.dart';
 
 class SessionService {
-  static const String baseUrl = 'http://192.168.1.71:8080/api/v1';
+  static const String baseUrl = 'https://psymed-backend-new.onrender.com/api/v1';
 
   dynamic _parseResponse(http.Response response) {
     print('Status Code: ${response.statusCode}');
@@ -36,11 +36,6 @@ class SessionService {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',
-        },
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Timeout: El servidor no respondió a tiempo');
         },
       );
 
@@ -82,11 +77,6 @@ class SessionService {
           'Authorization': 'Bearer $token',
         },
         body: json.encode(request.toJson()),
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Timeout: El servidor no respondió a tiempo');
-        },
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {
@@ -127,11 +117,6 @@ class SessionService {
           'Authorization': 'Bearer $token',
         },
         body: json.encode(request.toJson()),
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Timeout: El servidor no respondió a tiempo');
-        },
       );
 
       if (response.statusCode == 200) {
@@ -171,11 +156,6 @@ class SessionService {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',
-        },
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Timeout: El servidor no respondió a tiempo');
         },
       );
 

@@ -122,7 +122,7 @@ class AnalyticsService {
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',
         },
-      ).timeout(const Duration(seconds: 10));
+      );
       
       print('Mood states response: ${response.statusCode}');
       print('Mood states body: ${response.body}');
@@ -153,7 +153,7 @@ class AnalyticsService {
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',
         },
-      ).timeout(const Duration(seconds: 10));
+      );
       
       print('Biological functions response: ${response.statusCode}');
       print('Biological functions body: ${response.body}');
@@ -191,7 +191,7 @@ class AnalyticsService {
         body: json.encode({
           'status': backendMood,
         }),
-      ).timeout(const Duration(seconds: 10));
+      );
       
       print('Create mood state response: ${response.statusCode}');
       print('Create mood state body: ${response.body}');
@@ -230,7 +230,7 @@ class AnalyticsService {
           'sleep': sleep,
           'energy': energy,
         }),
-      ).timeout(const Duration(seconds: 10));
+      );
       
       print('Create biological function response: ${response.statusCode}');
       print('Create biological function body: ${response.body}');

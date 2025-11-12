@@ -33,11 +33,6 @@ class TaskService {
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',
         },
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Timeout: El servidor no respondió a tiempo');
-        },
       );
       
       print('Response status: ${response.statusCode}');
@@ -71,7 +66,7 @@ class TaskService {
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',
         },
-      ).timeout(const Duration(seconds: 10));
+      );
       
       if (response.statusCode == 200) {
         final List<dynamic> data = _parseResponse(response);
@@ -93,7 +88,7 @@ class TaskService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-      ).timeout(const Duration(seconds: 10));
+      );
       
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw Exception('Error al marcar tarea como completa');
@@ -112,7 +107,7 @@ class TaskService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-      ).timeout(const Duration(seconds: 10));
+      );
       
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw Exception('Error al marcar tarea como incompleta');
@@ -140,7 +135,7 @@ class TaskService {
           'title': title,
           'description': description,
         }),
-      ).timeout(const Duration(seconds: 10));
+      );
       
       if (response.statusCode == 200 || response.statusCode == 201) {
         return Task.fromJson(_parseResponse(response));
@@ -170,7 +165,7 @@ class TaskService {
           'title': title,
           'description': description,
         }),
-      ).timeout(const Duration(seconds: 10));
+      );
 
       if (response.statusCode == 200) {
         return Task.fromJson(_parseResponse(response));
@@ -193,7 +188,7 @@ class TaskService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-      ).timeout(const Duration(seconds: 10));
+      );
       
       if (response.statusCode != 200 && response.statusCode != 204) {
         throw Exception('Error al eliminar tarea');
