@@ -5,6 +5,22 @@ import '../models/task_model.dart';
 import 'api_services.dart';
 
 class TaskService {
+  dynamic _parseResponse(http.Response response) {
+    if (response.body.isEmpty) {
+      throw Exception('El servidor no retornó datos. Status: ${response.statusCode}');
+    }
+
+    if (response.body.trim().startsWith('<')) {
+      throw Exception('El servidor respondió con HTML en lugar de JSON.');
+    }
+
+    try {
+      return json.decode(response.body);
+    } catch (e) {
+      throw Exception('Error al parsear JSON: $e');
+    }
+  }
+
   // Get all tasks for a patient
   Future<List<Task>> getTasksByPatientId(int patientId, String token) async {
     try {
@@ -28,7 +44,7 @@ class TaskService {
       print('Response body: ${response.body}');
       
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final List<dynamic> data = _parseResponse(response);
         return data.map((json) => Task.fromJson(json)).toList();
       } else if (response.statusCode == 401) {
         throw Exception('Token inválido o expirado');
@@ -58,7 +74,7 @@ class TaskService {
       ).timeout(const Duration(seconds: 10));
       
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final List<dynamic> data = _parseResponse(response);
         return data.map((json) => Task.fromJson(json)).toList();
       } else {
         throw Exception('Error al obtener tareas de la sesión');
@@ -127,9 +143,41 @@ class TaskService {
       ).timeout(const Duration(seconds: 10));
       
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return Task.fromJson(json.decode(response.body));
+        return Task.fromJson(_parseResponse(response));
       } else {
         throw Exception('Error al crear tarea');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión: $e');
+    }
+  }
+
+  Future<Task> updateTask(
+    int sessionId,
+    int taskId,
+    String title,
+    String description,
+    String token,
+  ) async {
+    try {
+      final response = await http.put(
+        Uri.parse('${ApiService.baseUrl}/sessions/$sessionId/tasks/$taskId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode({
+          'title': title,
+          'description': description,
+        }),
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        return Task.fromJson(_parseResponse(response));
+      } else if (response.statusCode == 404) {
+        throw Exception('La tarea no existe');
+      } else {
+        throw Exception('Error al actualizar tarea');
       }
     } catch (e) {
       throw Exception('Error de conexión: $e');

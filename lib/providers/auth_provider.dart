@@ -9,6 +9,7 @@ class AuthProvider with ChangeNotifier {
   AuthResponse? _authResponse;
   UserResponse? _currentUser;
   PatientProfile? _patientProfile;
+  ProfessionalProfile? _professionalProfile;
   bool _isLoading = false;
   String? _errorMessage;
   String? _token;
@@ -17,11 +18,14 @@ class AuthProvider with ChangeNotifier {
   AuthResponse? get authResponse => _authResponse;
   UserResponse? get currentUser => _currentUser;
   PatientProfile? get patientProfile => _patientProfile;
+  ProfessionalProfile? get professionalProfile => _professionalProfile;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _authResponse != null && _token != null;
   String? get token => _token;
   int? get userId => _userId;
+  bool get isProfessional => _currentUser?.role == 'ROLE_PROFESSIONAL';
+  bool get isPatient => _currentUser?.role == 'ROLE_PATIENT';
 
   // Iniciar sesión
   Future<bool> signIn(String username, String password) async {
@@ -62,8 +66,12 @@ class AuthProvider with ChangeNotifier {
       // Primero obtener los datos de la cuenta
       _currentUser = await _apiService.getAccount(_userId!, _token!);
       
-      // Luego obtener el perfil de paciente
-      _patientProfile = await _apiService.getPatientProfileByAccount(_userId!, _token!);
+      // Según el rol, obtener el perfil correspondiente
+      if (_currentUser?.role == 'ROLE_PATIENT') {
+        _patientProfile = await _apiService.getPatientProfileByAccount(_userId!, _token!);
+      } else if (_currentUser?.role == 'ROLE_PROFESSIONAL') {
+        _professionalProfile = await _apiService.getProfessionalProfileByAccount(_userId!, _token!);
+      }
       
       notifyListeners();
     } catch (e) {
@@ -97,6 +105,7 @@ class AuthProvider with ChangeNotifier {
     _authResponse = null;
     _currentUser = null;
     _patientProfile = null;
+    _professionalProfile = null;
     _token = null;
     _userId = null;
     notifyListeners();

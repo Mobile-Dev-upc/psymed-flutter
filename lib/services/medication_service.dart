@@ -101,4 +101,133 @@ class MedicationService {
       throw Exception('Error de conexión: $e');
     }
   }
+
+  // Crear un nuevo medicamento
+  Future<Medication> createMedication(MedicationRequest request, String token) async {
+    try {
+      print('Creando medicamento: ${request.toJson()}');
+      
+      final response = await http.post(
+        Uri.parse('$baseUrl/pills'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode(request.toJson()),
+      ).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw Exception('Timeout: El servidor no respondió a tiempo');
+        },
+      );
+
+      print('Create Response Status: ${response.statusCode}');
+      print('Create Response Body: ${response.body}');
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = _parseResponse(response);
+        return Medication.fromJson(data);
+      } else if (response.statusCode == 401) {
+        throw Exception('Token inválido o expirado');
+      } else if (response.statusCode == 400) {
+        final errorBody = _parseResponse(response);
+        throw Exception('Error de validación: ${errorBody['message'] ?? 'Datos inválidos'}');
+      } else {
+        throw Exception('Error al crear medicamento. Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (e.toString().contains('SocketException') || 
+          e.toString().contains('Failed host lookup')) {
+        throw Exception('No se puede conectar al servidor.');
+      }
+      throw Exception('Error de conexión: $e');
+    }
+  }
+
+  // Actualizar un medicamento
+  Future<Medication> updateMedication(int medicationId, MedicationUpdateRequest request, String token) async {
+    try {
+      print('Actualizando medicamento ID: $medicationId');
+      print('Datos: ${request.toJson()}');
+      
+      final response = await http.put(
+        Uri.parse('$baseUrl/pills/$medicationId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode(request.toJson()),
+      ).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw Exception('Timeout: El servidor no respondió a tiempo');
+        },
+      );
+
+      print('Update Response Status: ${response.statusCode}');
+      print('Update Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = _parseResponse(response);
+        return Medication.fromJson(data);
+      } else if (response.statusCode == 401) {
+        throw Exception('Token inválido o expirado');
+      } else if (response.statusCode == 404) {
+        throw Exception('Medicamento no encontrado');
+      } else if (response.statusCode == 400) {
+        final errorBody = _parseResponse(response);
+        throw Exception('Error de validación: ${errorBody['message'] ?? 'Datos inválidos'}');
+      } else {
+        throw Exception('Error al actualizar medicamento. Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (e.toString().contains('SocketException') || 
+          e.toString().contains('Failed host lookup')) {
+        throw Exception('No se puede conectar al servidor.');
+      }
+      throw Exception('Error de conexión: $e');
+    }
+  }
+
+  // Eliminar un medicamento
+  Future<void> deleteMedication(int medicationId, String token) async {
+    try {
+      print('Eliminando medicamento ID: $medicationId');
+      
+      final response = await http.delete(
+        Uri.parse('$baseUrl/pills/$medicationId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw Exception('Timeout: El servidor no respondió a tiempo');
+        },
+      );
+
+      print('Delete Response Status: ${response.statusCode}');
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        // Eliminación exitosa
+        return;
+      } else if (response.statusCode == 401) {
+        throw Exception('Token inválido o expirado');
+      } else if (response.statusCode == 404) {
+        throw Exception('Medicamento no encontrado');
+      } else {
+        throw Exception('Error al eliminar medicamento. Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (e.toString().contains('SocketException') || 
+          e.toString().contains('Failed host lookup')) {
+        throw Exception('No se puede conectar al servidor.');
+      }
+      throw Exception('Error de conexión: $e');
+    }
+  }
 }

@@ -143,3 +143,131 @@ class PatientProfile {
     );
   }
 }
+
+class ProfessionalProfileRequest {
+  final String firstName;
+  final String lastName;
+  final String street;
+  final String city;
+  final String country;
+  final String email;
+  final String username;
+  final String password;
+
+  ProfessionalProfileRequest({
+    required this.firstName,
+    required this.lastName,
+    required this.street,
+    required this.city,
+    required this.country,
+    required this.email,
+    required this.username,
+    required this.password,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'firstName': firstName,
+      'lastName': lastName,
+      'street': street,
+      'city': city,
+      'country': country,
+      'email': email,
+      'username': username,
+      'password': password,
+    };
+  }
+}
+
+class ProfessionalProfile {
+  final int id;
+  final String fullName;
+  final String email;
+  final String streetAddress;
+  final int accountId;
+
+  ProfessionalProfile({
+    required this.id,
+    required this.fullName,
+    required this.email,
+    required this.streetAddress,
+    required this.accountId,
+  });
+
+  factory ProfessionalProfile.fromJson(Map<String, dynamic> json) {
+    return ProfessionalProfile(
+      id: json['id'],
+      fullName: json['fullName'],
+      email: json['email'],
+      streetAddress: json['streetAddress'],
+      accountId: json['accountId']['accountId'],
+    );
+  }
+}
+
+class PatientSummary {
+  final int id;
+  final String fullName;
+  final String email;
+  final String streetAddress;
+  final int accountId;
+
+  PatientSummary({
+    required this.id,
+    required this.fullName,
+    required this.email,
+    required this.streetAddress,
+    required this.accountId,
+  });
+
+  factory PatientSummary.fromJson(Map<String, dynamic> json) {
+    print('Parsing PatientSummary from JSON: $json');
+    
+    // Manejar accountId que puede venir como objeto o como número directo
+    int accountIdValue;
+    if (json['accountId'] is Map) {
+      accountIdValue = json['accountId']['accountId'];
+    } else if (json['accountId'] is int) {
+      accountIdValue = json['accountId'];
+    } else {
+      accountIdValue = int.parse(json['accountId'].toString());
+    }
+    
+    return PatientSummary(
+      id: json['id'],
+      fullName: json['fullName'],
+      email: json['email'],
+      streetAddress: json['streetAddress'],
+      accountId: accountIdValue,
+    );
+  }
+}
+
+class UpdatePatientProfileRequest {
+  final String firstName;
+  final String lastName;
+  final String street;
+  final String city;
+  final String country;
+  final String email;
+
+  UpdatePatientProfileRequest({
+    required this.firstName,
+    required this.lastName,
+    required this.street,
+    required this.city,
+    required this.country,
+    required this.email,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'firstName': firstName,
+      'lastName': lastName,
+      'street': street,
+      'city': city,
+      'country': country,
+      'email': email,
+    };
+  }
+}

@@ -43,13 +43,18 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     return DateFormat('hh:mm a').format(date);
   }
 
-  String _getSessionDuration(int hours) {
-    // sessionTime comes in HOURS from backend, not minutes
+  String _getSessionDuration(double hours) {
+    if (hours == hours.truncateToDouble()) {
+      final intHours = hours.toInt();
+      if (intHours == 1) return '1 hour';
+      return '$intHours hours';
+    }
+
     if (hours == 1) {
       return '1 hour';
-    } else {
-      return '$hours hours';
     }
+
+    return '${hours.toStringAsFixed(1)} hours';
   }
 
   @override
@@ -57,9 +62,9 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     return Consumer<SessionProvider>(
       builder: (context, sessionProvider, child) {
         if (sessionProvider.isLoading) {
-          return Scaffold(
+          return const Scaffold(
             backgroundColor: AppColors.background,
-            body: const Center(
+            body: Center(
               child: CircularProgressIndicator(),
             ),
           );

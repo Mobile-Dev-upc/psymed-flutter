@@ -64,4 +64,137 @@ class SessionService {
       throw Exception('Error de conexión: $e');
     }
   }
+
+  Future<Session> createSession({
+    required int professionalId,
+    required int patientId,
+    required SessionCreateRequest request,
+    required String token,
+  }) async {
+    try {
+      print('Creando sesión para paciente: $patientId y profesional: $professionalId');
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/professionals/$professionalId/patients/$patientId/sessions'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode(request.toJson()),
+      ).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw Exception('Timeout: El servidor no respondió a tiempo');
+        },
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = _parseResponse(response);
+        return Session.fromJson(data);
+      } else if (response.statusCode == 401) {
+        throw Exception('Token inválido o expirado');
+      } else if (response.statusCode == 400) {
+        final errorBody = _parseResponse(response);
+        throw Exception('Error de validación: ${errorBody['message'] ?? 'Datos inválidos'}');
+      } else {
+        throw Exception('Error al crear sesión. Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (e.toString().contains('SocketException') ||
+          e.toString().contains('Failed host lookup')) {
+        throw Exception('No se puede conectar al servidor.');
+      }
+      throw Exception('Error de conexión: $e');
+    }
+  }
+
+  Future<Session> updateSession({
+    required int professionalId,
+    required int patientId,
+    required int sessionId,
+    required SessionUpdateRequest request,
+    required String token,
+  }) async {
+    try {
+      print('Actualizando sesión $sessionId para paciente: $patientId');
+
+      final response = await http.put(
+        Uri.parse('$baseUrl/professionals/$professionalId/patients/$patientId/sessions/$sessionId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode(request.toJson()),
+      ).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw Exception('Timeout: El servidor no respondió a tiempo');
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = _parseResponse(response);
+        return Session.fromJson(data);
+      } else if (response.statusCode == 401) {
+        throw Exception('Token inválido o expirado');
+      } else if (response.statusCode == 404) {
+        throw Exception('Sesión no encontrada');
+      } else if (response.statusCode == 400) {
+        final errorBody = _parseResponse(response);
+        throw Exception('Error de validación: ${errorBody['message'] ?? 'Datos inválidos'}');
+      } else {
+        throw Exception('Error al actualizar sesión. Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (e.toString().contains('SocketException') ||
+          e.toString().contains('Failed host lookup')) {
+        throw Exception('No se puede conectar al servidor.');
+      }
+      throw Exception('Error de conexión: $e');
+    }
+  }
+
+  Future<void> deleteSession({
+    required int professionalId,
+    required int patientId,
+    required int sessionId,
+    required String token,
+  }) async {
+    try {
+      print('Eliminando sesión $sessionId para paciente: $patientId');
+
+      final response = await http.delete(
+        Uri.parse('$baseUrl/professionals/$professionalId/patients/$patientId/sessions/$sessionId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw Exception('Timeout: El servidor no respondió a tiempo');
+        },
+      );
+
+      if (response.statusCode == 200 ||
+          response.statusCode == 204) {
+        return;
+      } else if (response.statusCode == 401) {
+        throw Exception('Token inválido o expirado');
+      } else if (response.statusCode == 404) {
+        throw Exception('Sesión no encontrada');
+      } else {
+        throw Exception('Error al eliminar sesión. Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (e.toString().contains('SocketException') ||
+          e.toString().contains('Failed host lookup')) {
+        throw Exception('No se puede conectar al servidor.');
+      }
+      throw Exception('Error de conexión: $e');
+    }
+  }
 }

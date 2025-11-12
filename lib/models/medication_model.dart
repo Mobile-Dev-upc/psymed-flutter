@@ -39,3 +39,53 @@ class Medication {
   }
 }
 
+class MedicationRequest {
+  final String name;
+  final String description;
+  final int patientId;
+  final String interval;
+  final String quantity;
+
+  MedicationRequest({
+    required this.name,
+    required this.description,
+    required this.patientId,
+    required this.interval,
+    required this.quantity,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'description': description,
+      'patientId': patientId,
+      'interval': interval,
+      'quantity': quantity,
+    };
+  }
+}
+
+class MedicationUpdateRequest {
+  final String name;
+  final String description;
+  final String interval;
+  final String quantity;
+
+  MedicationUpdateRequest({
+    required this.name,
+    required this.description,
+    required this.interval,
+    required this.quantity,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'description': description,
+      'interval': interval,
+      'quantity': quantity,
+    };
+  }
+}
+
+
