@@ -115,6 +115,35 @@ class TaskProvider with ChangeNotifier {
     }
   }
 
+  Future<bool> updateTask(
+    Task task,
+    String title,
+    String description,
+    String token,
+  ) async {
+    try {
+      final updatedTask = await _taskService.updateTask(
+        task.idSession,
+        int.parse(task.id),
+        title,
+        description,
+        token,
+      );
+
+      final index = _tasks.indexWhere((t) => t.id == task.id);
+      if (index != -1) {
+        _tasks[index] = updatedTask;
+        notifyListeners();
+      }
+
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
   void clearError() {
     _error = null;
     notifyListeners();

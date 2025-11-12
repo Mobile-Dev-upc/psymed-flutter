@@ -713,45 +713,48 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
   }
 
   Widget _buildTasksTab() {
-    if (_tasks.isEmpty) {
-      return _buildEmptyState(
-        icon: Icons.task_alt,
-        message: 'No tasks assigned',
-      );
-    }
-
     final completedTasks = _tasks.where((task) => task.status == 1).length;
     final pendingTasks = _tasks.length - completedTasks;
 
-    return Column(
+    return Stack(
       children: [
-        Container(
-          margin: const EdgeInsets.all(16.0),
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            color: AppColors.cardBackground,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.primary.withOpacity(0.2)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+        if (_tasks.isEmpty)
+          _buildEmptyState(
+            icon: Icons.task_alt,
+            message: 'No tasks assigned',
+          )
+        else
+          ListView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
             children: [
-              _buildTaskStat('Total', _tasks.length.toString(), Colors.blue),
-              _buildTaskStat(
-                  'Pending', pendingTasks.toString(), Colors.orange),
-              _buildTaskStat(
-                  'Completed', completedTasks.toString(), Colors.green),
+              Container(
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: AppColors.cardBackground,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildTaskStat('Total', _tasks.length.toString(), Colors.blue),
+                    _buildTaskStat('Pending', pendingTasks.toString(), Colors.orange),
+                    _buildTaskStat('Completed', completedTasks.toString(), Colors.green),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              ..._tasks.map(_buildTaskCard).toList(),
             ],
           ),
-        ),
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            itemCount: _tasks.length,
-            itemBuilder: (context, index) {
-              final task = _tasks[index];
-              return _buildTaskCard(task);
-            },
+        Positioned(
+          bottom: 16,
+          right: 16,
+          child: FloatingActionButton(
+            heroTag: 'taskFab',
+            onPressed: _showAddTaskDialog,
+            backgroundColor: AppColors.primary,
+            child: const Icon(Icons.add_task, color: Colors.white),
           ),
         ),
       ],
@@ -781,8 +784,24 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
     );
   }
 
+  Session _placeholderSession(int sessionId) {
+    return Session(
+      id: sessionId,
+      patientId: widget.patientId,
+      professionalId: _patientProfile?.professionalId ?? 0,
+      appointmentDate: DateTime.now(),
+      sessionTime: 1.0,
+    );
+  }
+
   Widget _buildTaskCard(Task task) {
     final isCompleted = task.status == 1;
+    final session = _sessions.firstWhere(
+      (session) => session.id == task.idSession,
+      orElse: () => _placeholderSession(task.idSession),
+    );
+    final dateFormatter = DateFormat('MMM dd, yyyy');
+    final timeFormatter = DateFormat('HH:mm');
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -790,57 +809,634 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: isCompleted
-                    ? Colors.green.withOpacity(0.1)
-                    : Colors.orange.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                isCompleted ? Icons.check_circle : Icons.pending,
-                color: isCompleted ? Colors.green : Colors.orange,
-                size: 24,
-              ),
+            Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: isCompleted
+                        ? Colors.green.withOpacity(0.1)
+                        : Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    isCompleted ? Icons.check_circle : Icons.pending,
+                    color: isCompleted ? Colors.green : Colors.orange,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        task.title,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                          decoration:
+                              isCompleted ? TextDecoration.lineThrough : null,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        task.description,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
+                          decoration:
+                              isCompleted ? TextDecoration.lineThrough : null,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        isCompleted ? Icons.check_box : Icons.check_box_outline_blank,
+                        color: isCompleted ? Colors.green : AppColors.textSecondary,
+                        size: 22,
+                      ),
+                      tooltip: isCompleted ? 'Mark as pending' : 'Mark as completed',
+                      onPressed: () => _toggleTaskStatus(task),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.edit, size: 20, color: AppColors.primary),
+                      tooltip: 'Edit',
+                      onPressed: () => _showEditTaskDialog(task),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete, size: 20, color: Colors.red),
+                      tooltip: 'Delete',
+                      onPressed: () => _confirmDeleteTask(task),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    task.title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                      decoration:
-                          isCompleted ? TextDecoration.lineThrough : null,
-                    ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                const Icon(Icons.calendar_today, size: 16, color: AppColors.textSecondary),
+                const SizedBox(width: 6),
+                Text(
+                  '${dateFormatter.format(session.appointmentDate)} • ${timeFormatter.format(session.appointmentDate)}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    task.description,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
-                      decoration:
-                          isCompleted ? TextDecoration.lineThrough : null,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
+  }
+
+  void _showAddTaskDialog() {
+    if (_sessions.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No sessions available. Create a session before adding tasks.'),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    _showTaskDialog();
+  }
+
+  void _showEditTaskDialog(Task task) {
+    _showTaskDialog(existingTask: task);
+  }
+
+  void _showTaskDialog({Task? existingTask}) {
+    final isEditing = existingTask != null;
+    final formKey = GlobalKey<FormState>();
+
+    Session? selectedSession = isEditing
+        ? _sessions.firstWhere(
+            (session) => session.id == existingTask!.idSession,
+            orElse: () => _sessions.isNotEmpty
+                ? _sessions.first
+                : _placeholderSession(existingTask.idSession),
+          )
+        : (_sessions.isNotEmpty ? _sessions.first : null);
+
+    final titleController = TextEditingController(text: existingTask?.title ?? '');
+    final descriptionController = TextEditingController(text: existingTask?.description ?? '');
+    final dateFormatter = DateFormat('MMM dd, yyyy');
+    final timeFormatter = DateFormat('HH:mm');
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: Row(
+                children: [
+                  Icon(
+                    isEditing ? Icons.edit_note : Icons.task_alt,
+                    color: AppColors.primary,
+                    size: 28,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    isEditing ? 'Edit Task' : 'Add Task',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      DropdownButtonFormField<Session>(
+                        value: selectedSession,
+                        items: _sessions
+                            .map(
+                              (session) => DropdownMenuItem<Session>(
+                                value: session,
+                                child: Text(
+                                  '${dateFormatter.format(session.appointmentDate)} • ${timeFormatter.format(session.appointmentDate)}',
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: isEditing
+                            ? null
+                            : (value) {
+                                setStateDialog(() {
+                                  selectedSession = value;
+                                });
+                              },
+                        decoration: const InputDecoration(
+                          labelText: 'Session *',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.calendar_today),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: titleController,
+                        decoration: const InputDecoration(
+                          labelText: 'Title *',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.title),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a title';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: descriptionController,
+                        maxLines: 3,
+                        decoration: const InputDecoration(
+                          labelText: 'Description *',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.description),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a description';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: AppColors.textSecondary),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    FocusScope.of(dialogContext).unfocus();
+
+                    if (!formKey.currentState!.validate()) {
+                      return;
+                    }
+
+                    if (!isEditing && selectedSession == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Please select a session for the task'),
+                          backgroundColor: Colors.orange,
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
+                      return;
+                    }
+
+                    Navigator.pop(dialogContext);
+
+                    if (isEditing) {
+                      await _updateTask(
+                        task: existingTask!,
+                        title: titleController.text,
+                        description: descriptionController.text,
+                      );
+                    } else {
+                      await _createTask(
+                        sessionId: selectedSession!.id,
+                        title: titleController.text,
+                        description: descriptionController.text,
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text(isEditing ? 'Update' : 'Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _confirmDeleteTask(Task task) {
+    final dateFormatter = DateFormat('MMM dd, yyyy');
+    final timeFormatter = DateFormat('HH:mm');
+    final session = _sessions.firstWhere(
+      (session) => session.id == task.idSession,
+      orElse: () => Session(
+        id: task.idSession,
+        patientId: widget.patientId,
+        professionalId: _patientProfile?.professionalId ?? 0,
+        appointmentDate: DateTime.now(),
+        sessionTime: 1.0,
+      ),
+    );
+    final taskCreatedAt = task.createdAt ?? session.appointmentDate;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.red, size: 28),
+              SizedBox(width: 10),
+              Text(
+                'Delete Task',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Are you sure you want to delete this task?',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.withOpacity(0.3)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      task.title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      task.description,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      '${dateFormatter.format(session.appointmentDate)} • ${timeFormatter.format(session.appointmentDate)}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Created on ${dateFormatter.format(taskCreatedAt)}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                '⚠️ This action cannot be undone.',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontStyle: FontStyle.italic,
+                  color: Colors.red,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(dialogContext);
+                await _deleteTask(task);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _createTask({
+    required int sessionId,
+    required String title,
+    required String description,
+  }) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final messenger = ScaffoldMessenger.of(context);
+
+    final token = authProvider.token;
+    if (token == null) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Authentication token not found. Please log in again.'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _taskService.createTask(sessionId, title, description, token);
+
+      if (!mounted) return;
+
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Task created successfully'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+
+      await _loadPatientData();
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Error creating task: ${e.toString().replaceAll('Exception: ', '')}'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _updateTask({
+    required Task task,
+    required String title,
+    required String description,
+  }) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final messenger = ScaffoldMessenger.of(context);
+
+    final token = authProvider.token;
+    if (token == null) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Authentication token not found. Please log in again.'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _taskService.updateTask(
+        task.idSession,
+        int.parse(task.id),
+        title,
+        description,
+        token,
+      );
+
+      if (!mounted) return;
+
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Task updated successfully'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+
+      await _loadPatientData();
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Error updating task: ${e.toString().replaceAll('Exception: ', '')}'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _deleteTask(Task task) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final messenger = ScaffoldMessenger.of(context);
+
+    final token = authProvider.token;
+    if (token == null) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Authentication token not found. Please log in again.'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _taskService.deleteTask(task.idSession, int.parse(task.id), token);
+
+      if (!mounted) return;
+
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Task deleted successfully'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+
+      await _loadPatientData();
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Error deleting task: ${e.toString().replaceAll('Exception: ', '')}'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _toggleTaskStatus(Task task) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final messenger = ScaffoldMessenger.of(context);
+
+    final token = authProvider.token;
+    if (token == null) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Authentication token not found. Please log in again.'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      if (task.status == 0) {
+        await _taskService.markTaskComplete(task.idSession, int.parse(task.id), token);
+      } else {
+        await _taskService.markTaskIncomplete(task.idSession, int.parse(task.id), token);
+      }
+
+      if (!mounted) return;
+
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(task.status == 0
+              ? 'Task marked as completed'
+              : 'Task marked as pending'),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      await _loadPatientData();
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Error updating task: ${e.toString().replaceAll('Exception: ', '')}'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   Widget _buildEmptyState({required IconData icon, required String message}) {
