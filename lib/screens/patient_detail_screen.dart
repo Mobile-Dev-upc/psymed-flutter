@@ -1,5 +1,4 @@
 // lib/screens/patient_detail_screen.dart
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -1035,7 +1034,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
 
     Session? selectedSession = isEditing
         ? _sessions.firstWhere(
-            (session) => session.id == existingTask!.idSession,
+            (session) => session.id == existingTask.idSession,
             orElse: () => _sessions.isNotEmpty
                 ? _sessions.first
                 : _placeholderSession(existingTask.idSession),
@@ -1074,7 +1073,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       DropdownButtonFormField<Session>(
-                        value: selectedSession,
+                        initialValue: selectedSession,
                         items: _sessions
                             .map(
                               (session) => DropdownMenuItem<Session>(
@@ -1165,7 +1164,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
 
                     if (isEditing) {
                       await _updateTask(
-                        task: existingTask!,
+                        task: existingTask,
                         title: titleController.text,
                         description: descriptionController.text,
                       );
@@ -2048,7 +2047,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
 
                     if (isEditing) {
                       await _updateSession(
-                        sessionId: existingSession!.id,
+                        sessionId: existingSession.id,
                         appointmentDate: selectedDateTime,
                         sessionTime: durationValue,
                       );

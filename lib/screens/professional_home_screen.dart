@@ -79,11 +79,11 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Row(
+          title: const Row(
             children: [
-              const Icon(Icons.badge, color: AppColors.primary),
-              const SizedBox(width: 10),
-              const Text(
+              Icon(Icons.badge, color: AppColors.primary),
+              SizedBox(width: 10),
+              Text(
                 'Your Professional ID',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,

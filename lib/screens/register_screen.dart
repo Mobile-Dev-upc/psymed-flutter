@@ -32,7 +32,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   
   // Los profesionales usan los mismos controladores de dirección que los pacientes
   
-  String _selectedUserType = 'professional'; // Solo profesionales se registran públicamente
+  final String _selectedUserType = 'professional'; // Solo profesionales se registran públicamente
   bool _isLoading = false;
 
   @override
