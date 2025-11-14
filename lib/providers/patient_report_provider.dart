@@ -29,9 +29,11 @@ class PatientReportProvider with ChangeNotifier {
       _moodStates = await _reportService.getMoodStates(patientId, token);
       _biologicalFunctions = await _reportService.getBiologicalFunctions(patientId, token);
       
-      // Actualizar fecha del último reporte si hay datos
-      if (_moodStates.isNotEmpty) {
+      // Actualizar fecha del último reporte si hay datos de hoy
+      if (_moodStates.isNotEmpty || _biologicalFunctions.isNotEmpty) {
         _lastReportDate = DateTime.now();
+      } else {
+        _lastReportDate = null;
       }
       
       _isLoading = false;

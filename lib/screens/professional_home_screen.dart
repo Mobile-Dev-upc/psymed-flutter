@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/professional_provider.dart';
+import '../providers/patient_report_provider.dart';
 import '../core/theme/app_colors.dart';
 import '../models/user_model.dart';
 import 'patient_detail_screen.dart';
@@ -60,9 +61,11 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
   Future<void> _handleLogout() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final professionalProvider = Provider.of<ProfessionalProvider>(context, listen: false);
+    final reportProvider = Provider.of<PatientReportProvider>(context, listen: false);
     
     await authProvider.signOut();
     professionalProvider.clear();
+    reportProvider.clearReports();
     
     if (mounted) {
       Navigator.pushReplacement(

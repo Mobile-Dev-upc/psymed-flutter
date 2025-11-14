@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/patient_report_provider.dart';
 import 'login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -45,7 +46,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (confirmed == true && mounted) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final reportProvider = Provider.of<PatientReportProvider>(context, listen: false);
+      
       await authProvider.signOut();
+      reportProvider.clearReports();
       
       if (mounted) {
         Navigator.pushReplacement(
