@@ -30,6 +30,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
   final _confirmPasswordController = TextEditingController();
   
   bool _isLoading = false;
+  bool _acceptedTerms = false;
 
   @override
   void dispose() {
@@ -46,6 +47,16 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
   }
 
   Future<void> _handleAddPatient() async {
+    if (!_acceptedTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please accept the Terms and Conditions to continue'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+    
     if (_formKey.currentState!.validate()) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final professionalProvider = Provider.of<ProfessionalProvider>(context, listen: false);
@@ -375,7 +386,100 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 20),
+                
+                // Terms and Conditions Section
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardBackground,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Terms and Conditions - Patient Data",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.vertical,
+                        child: Container(
+                          constraints: const BoxConstraints(maxHeight: 200),
+                          child: const SingleChildScrollView(
+                            child: Text(
+                              "By creating a patient account, you acknowledge and agree to the following:\n\n"
+                              "1. Patient Data Collection: The application will collect and store patient data including:\n"
+                              "   • Patient's name (first and last name)\n"
+                              "   • Patient's email address\n"
+                              "   • Patient's physical address (street, city, country)\n"
+                              "   • Patient's mood state information\n"
+                              "   • Patient's biological function data (hunger, hydration, sleep, energy levels)\n"
+                              "   • Account credentials (username and encrypted password)\n\n"
+                              "2. Patient Consent: You confirm that you have obtained proper informed consent from the patient for:\n"
+                              "   • Data collection and processing\n"
+                              "   • Storage of personal and health-related information\n"
+                              "   • Use of the application for healthcare management\n\n"
+                              "3. Data Storage: All patient data will be stored securely on our servers for healthcare service provision and medical record maintenance.\n\n"
+                              "4. No Advertising: This application does not display advertisements or promotional content to patients.\n\n"
+                              "5. Data Privacy: We do not sell, rent, or share patient information with third parties for commercial purposes. Patient data is used solely for healthcare management and treatment purposes.\n\n"
+                              "6. Professional Responsibility: As a healthcare professional, you are responsible for:\n"
+                              "   • Maintaining patient confidentiality\n"
+                              "   • Complying with applicable healthcare privacy regulations (HIPAA, GDPR, etc.)\n"
+                              "   • Ensuring patient data accuracy\n"
+                              "   • Informing patients about their data rights\n\n"
+                              "7. Security: We implement security measures to protect patient data, but you must maintain the confidentiality of patient account credentials.\n\n"
+                              "8. Patient Rights: Patients have the right to access, modify, or request deletion of their personal data in accordance with applicable privacy laws.",
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Checkbox(
+                            value: _acceptedTerms,
+                            onChanged: (value) {
+                              setState(() {
+                                _acceptedTerms = value ?? false;
+                              });
+                            },
+                            activeColor: AppColors.primary,
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _acceptedTerms = !_acceptedTerms;
+                                });
+                              },
+                              child: const Text(
+                                "I confirm that I have obtained patient consent and agree to the Terms and Conditions",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
                 
                 SizedBox(
                   width: double.infinity,
@@ -383,8 +487,9 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       padding: const EdgeInsets.symmetric(vertical: 16),
+                      disabledBackgroundColor: Colors.grey,
                     ),
-                    onPressed: _isLoading ? null : _handleAddPatient,
+                    onPressed: (_isLoading || !_acceptedTerms) ? null : _handleAddPatient,
                     child: _isLoading
                         ? const SizedBox(
                             height: 20,

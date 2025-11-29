@@ -34,6 +34,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   
   final String _selectedUserType = 'professional'; // Solo profesionales se registran públicamente
   bool _isLoading = false;
+  bool _acceptedTerms = false;
 
   @override
   void dispose() {
@@ -51,6 +52,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _handleRegister() async {
+    if (!_acceptedTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please accept the Terms and Conditions to continue'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+    
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
@@ -370,7 +381,93 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 20),
+                
+                // Terms and Conditions Section
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardBackground,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Terms and Conditions",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.vertical,
+                        child: Container(
+                          constraints: const BoxConstraints(maxHeight: 200),
+                          child: const SingleChildScrollView(
+                            child: Text(
+                              "By using PsyMed Mobile, you agree to the following terms:\n\n"
+                              "1. Data Collection: The application collects and stores personal data including:\n"
+                              "   • Name (first and last name)\n"
+                              "   • Email address\n"
+                              "   • Physical address (street, city, country)\n"
+                              "   • Mood state information\n"
+                              "   • Biological function data (hunger, hydration, sleep, energy levels)\n"
+                              "   • Account credentials (username and encrypted password)\n\n"
+                              "2. Data Storage: All collected data is stored securely on our servers for the purpose of providing healthcare services and maintaining patient records.\n\n"
+                              "3. No Advertising: This application does not display advertisements or promotional content.\n\n"
+                              "4. Data Privacy: We do not sell, rent, or share your personal information with third parties for commercial purposes. Your data is used solely for healthcare management and treatment purposes.\n\n"
+                              "5. Professional Use: As a healthcare professional, you are responsible for maintaining patient confidentiality and complying with applicable healthcare privacy regulations.\n\n"
+                              "6. Patient Data: When you register patients, you acknowledge that you have obtained proper consent from patients for data collection and processing.\n\n"
+                              "7. Security: We implement security measures to protect your data, but you are responsible for maintaining the confidentiality of your account credentials.\n\n"
+                              "8. Data Access: You have the right to access, modify, or request deletion of your personal data in accordance with applicable privacy laws.",
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Checkbox(
+                            value: _acceptedTerms,
+                            onChanged: (value) {
+                              setState(() {
+                                _acceptedTerms = value ?? false;
+                              });
+                            },
+                            activeColor: AppColors.primary,
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _acceptedTerms = !_acceptedTerms;
+                                });
+                              },
+                              child: const Text(
+                                "I have read and agree to the Terms and Conditions",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
                 
                 SizedBox(
                   width: double.infinity,
@@ -378,8 +475,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       padding: const EdgeInsets.symmetric(vertical: 16),
+                      disabledBackgroundColor: Colors.grey,
                     ),
-                    onPressed: _isLoading ? null : _handleRegister,
+                    onPressed: (_isLoading || !_acceptedTerms) ? null : _handleRegister,
                     child: _isLoading
                         ? const SizedBox(
                             height: 20,
